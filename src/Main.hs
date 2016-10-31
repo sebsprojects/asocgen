@@ -2,106 +2,66 @@ module Main where
 
 import Data.List
 import Data.Maybe
---import Data.Tree
+import Data.Time
 
 import Control.Monad
---import Control.Monad.Loops
+
+import System.IO
+import System.CPUTime
+import System.Console.ANSI
+
+import Param
+import Gen
 
 
-type BinOp = (Int -> Int -> Int)
-type MTab = [Int]
+type StepResult = (Action, [MTab], Maybe MTab)
 
-data Action = Fill | Up
-
-set :: [Int]
-set = [0..3]
-
-maxEle :: Int
-maxEle = maximum set
-
-sizeM :: Int
-sizeM = length set
-
-
--- Main
+{-
+ Main main main
+-}
 main :: IO ()
 main = do
-  let t0 = [genInitial]
-  let (m, res) = doStep Fill (t0, [])
-  --mapM_ printMTab res
-  putStrLn $ show (length res)
+  time <- getCurrentTime
+  let ftime = formatTime defaultTimeLocale "%F_%H-%M" time
+  let filePath = "saves/groups_n_" ++ (show sizeM) ++ "_" ++ ftime ++ ".txt"
 
+  file <- openFile filePath AppendMode
+  let t0 = doStepIter Fill [genInitial]
+  iterIO t0 0 0 0 file
+  hClose file
+  return ()
+
+iterIO :: StepResult -> Int -> Int -> Integer -> Handle -> IO StepResult
+iterIO (a, [], mres) _ _ _ _ = return (a, [], mres)
+iterIO (a, ts, mres) cnt tot tm file= do
+  let n = 1000
+  (tot, ntm) <- if cnt == n
+                then do
+                  now <- getCPUTime
+                  let diff = (fromIntegral (now - tm)) / (10^9) :: Double
+                  clearScreen
+                  printMTab (head ts)
+                  putStrLn ("Time for " ++ (show n) ++ " steps: "
+                            ++ (show diff) ++ "ms")
+                  putStrLn ("Total steps        : " ++ (show tot) ++ " * "
+                           ++ (show n))
+                  return (tot + 1, now)
+                else return (tot, tm)
+  let nextStep = doStepIter a ts
+  case nextStep of
+    (_, _, Just r) -> hPutStr file ((showMTab r) ++ "\n")
+    (_, _, _) -> return ()
+  iterIO nextStep ((cnt + 1) `mod` (n + 1)) tot ntm file
+
+
+{-
+ Printing MTabs pretty please
+-}
 printMTab :: MTab -> IO ()
 printMTab mtab = putStrLn $ showMTab mtab
 
-showMTab mtab = (intercalate "\n" (rows mtab)) ++ "\n"
-rows mtab = map (\x -> show $ selectRow x mtab) set
-
--- Basics
-toBinOp :: MTab -> BinOp
-toBinOp = evalMTab
-
-toMTab :: BinOp -> MTab
-toMTab = undefined
-
-evalMTab :: MTab -> Int -> Int -> Int
-evalMTab mtab r c = mtab !! (c + r * sizeM)
-  --where s = floor (sqrt (fromIntegral (length mtab)) :: Double)
-
-getEntry :: MTab -> Int -> Int -> Int
-getEntry = evalMTab
-
-isAsocOn :: BinOp -> Bool
-isAsocOn f = null xs
-  where xs = [a | a <- set, b <- set, c <- set, f (f a b) c /= f a (f b c)]
-
-
--- Generation
-isComplete :: MTab -> Bool
-isComplete mtab = not (-1 `elem` mtab)
-
-genInitial :: MTab
-genInitial = concat $ set : (map row (tail set))
-  where row m = m : (replicate (sizeM - 1) (-1))
-
-doStep :: Action -> ([MTab], [MTab]) -> ([MTab], [MTab])
-doStep _ ([], res) = ([], res)
-doStep Fill (t : ts, res) = case procMTab Fill t of
-  Nothing -> doStep Up ((t : ts), res)
-  Just r -> case isComplete r of
-    True -> doStep Up (ts, r : res)
-    False -> doStep Fill (r : t : ts, res)
-doStep Up (t : ts, res) = case procMTab Up t of
-  Nothing -> doStep Up (ts, res)
-  Just r -> doStep Fill (r : ts, res)
-
-procMTab :: Action -> MTab -> Maybe MTab
-procMTab a mtab =
-  join $ fmap (tupleUp mtab) (toRC $ fmap (+ (w a)) (findIndex (== -1) mtab))
-  where w Fill = 0
-        w Up = -1
-
-tupleUp mtab = uncurry (upEntry mtab)
-toRC i = fmap (\x -> (x `quot` length set, x `mod` length set)) i
-
-upEntry :: MTab -> Int -> Int -> Maybe MTab
-upEntry mtab r c
-  | getEntry mtab r c == maxEle = Nothing
-  | otherwise = fmap (\x -> replaceAtIndex (r * sizeM + c) x mtab) nextB
-  where constr = [0..(getEntry mtab r c)] ++ (selectRow r mtab) ++
-                 (selectCol c mtab)
-        nextB = nextBiggest constr
-
-selectRow ri xs = drop (sizeM * ri) $ take (sizeM * (ri + 1)) xs
-
-selectCol ci xs = map (xs !!) indexList
-  where indexList = map (\x -> x * sizeM + ci) set
-
-replaceAtIndex :: Int -> a -> [a] -> [a]
-replaceAtIndex n item ls = a ++ (item : b)
-  where (a, (_ : b)) = splitAt n ls
-
-nextBiggest :: [Int] -> Maybe Int
-nextBiggest constr | null xs = Nothing
-                   | otherwise = Just $ head xs
-  where xs = [x | x <- set, not $ x `elem` constr]
+showMTab mtab = concat (map toString (rows mtab))
+rows mtab = map (\x -> selectRow x mtab) set
+toString row = concat $ (map (\x -> buff $ show x) row) ++ ["\n"]
+buff s | length s < 3 = buff (" " ++ s)
+       | otherwise = s
