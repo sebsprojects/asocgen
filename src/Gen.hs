@@ -1,7 +1,7 @@
 module Gen where
 
-import Data.List
 import Data.Maybe
+import qualified Data.Vector.Unboxed as V
 
 import Control.Monad
 
@@ -11,20 +11,15 @@ import Param
 {-
  Basics
 -}
-type BinOp = (Int -> Int -> Int)
-type MTab = [Int]
+--type MTab = [Int]
+type MTab = V.Vector Int
 
 data Action = Fill | Up
 
 
-toBinOp :: MTab -> BinOp
-toBinOp = evalMTab
-
 evalMTab :: MTab -> Int -> Int -> Int
-evalMTab mtab r c = mtab !! (c + r * sizeM)
+evalMTab mtab r c = mtab V.! (c + r * sizeM)
 
-getEntry :: MTab -> Int -> Int -> Int
-getEntry = evalMTab
 
 isAsoc :: MTab -> Bool
 isAsoc mtab = null xs
@@ -45,49 +40,50 @@ isAsocIncmpl mtab = null xs
 
 
 isComplete :: MTab -> Bool
-isComplete mtab = not (-1 `elem` mtab)
+isComplete mtab = not (V.elem (-1) mtab)
 
 numEntries :: MTab -> Int
-numEntries mtab = (length $ filter (>= 0) mtab) - maxEle * 2 + 1
+numEntries mtab = (V.length $ V.filter (>= 0) mtab) - maxEle * 2 + 1
 
 
 {-
  Processing MTabs
 -}
 genInitial :: MTab
-genInitial = concat $ set : (map row (tail set))
+genInitial = V.fromList $ concat $ set : (map row (tail set))
   where row m = m : (replicate (sizeM - 1) (-1))
 
 procMTab :: Action -> MTab -> Maybe MTab
 procMTab a mtab =
-  join $ fmap (tupleUp mtab) (toRC $ fmap (+ (w a)) (findIndex (== -1) mtab))
+  join $ fmap (tupleUp mtab) (toRC $ fmap (+ (w a))
+                              (V.findIndex (== -1) mtab))
   where w Fill = 0
         w Up = -1
-
-tupleUp mtab = uncurry (upEntry mtab)
-toRC i = fmap (\x -> (x `quot` length set, x `mod` length set)) i
+        tupleUp mtab = uncurry (upEntry mtab)
+        toRC i = fmap (\x -> (x `quot` length set, x `mod` length set)) i
 
 upEntry :: MTab -> Int -> Int -> Maybe MTab
 upEntry mtab r c
-  | getEntry mtab r c == maxEle = Nothing
+  | evalMTab mtab r c == maxEle = Nothing
   | otherwise = fmap (\x -> replaceAtIndex (r * sizeM + c) x mtab) nextB
-  where constr = [0..(getEntry mtab r c)] ++ (selectRow r mtab) ++
-                 (selectCol c mtab)
+  where constr = V.enumFromN 0 ((evalMTab mtab r c) + 1) V.++
+                 (selectRow r mtab) V.++ (selectCol c mtab)
         nextB = nextBiggest constr
 
-selectRow ri xs = drop (sizeM * ri) $ take (sizeM * (ri + 1)) xs
+selectRow :: Int -> MTab -> MTab
+selectRow ri xs = V.drop (sizeM * ri) $ V.take (sizeM * (ri + 1)) xs
 
-selectCol ci xs = map (xs !!) indexList
+selectCol :: Int -> MTab -> MTab
+selectCol ci mtab = V.map (mtab V.!) (V.fromList indexList)
   where indexList = map (\x -> x * sizeM + ci) set
 
-replaceAtIndex :: Int -> a -> [a] -> [a]
-replaceAtIndex n item ls = a ++ (item : b)
-  where (a, (_ : b)) = splitAt n ls
+replaceAtIndex :: Int -> Int -> MTab -> MTab
+replaceAtIndex n item mtab = V.update mtab (V.singleton (n, item))
 
-nextBiggest :: [Int] -> Maybe Int
+nextBiggest :: MTab -> Maybe Int
 nextBiggest constr | null xs = Nothing
                    | otherwise = Just $ head xs
-  where xs = [x | x <- set, not $ x `elem` constr]
+  where xs = [x | x <- set, not $ V.elem x constr]
 
 
 -- | Pure, recursive
