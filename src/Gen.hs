@@ -1,8 +1,6 @@
 module Gen where
 
-import Data.Maybe
 import qualified Data.Vector.Unboxed as V
-
 import Control.Monad
 
 import Param
@@ -11,10 +9,14 @@ import Param
 {-
  Basics
 -}
---type MTab = [Int]
-type MTab = V.Vector Int
 
 data Action = Fill | Up
+
+{-
+ Zipper: (Action to do, current position, iteration order)
+-}
+type Zip = (Action, Int, V.Vector Int)
+type MTab = V.Vector Int
 
 
 evalMTab :: MTab -> Int -> Int -> Int
@@ -45,45 +47,124 @@ isComplete mtab = not (V.elem (-1) mtab)
 numEntries :: MTab -> Int
 numEntries mtab = (V.length $ V.filter (>= 0) mtab) - maxEle * 2 + 1
 
+pathLine :: Int -> V.Vector Int
+pathLine n = V.fromList $ shiftByOne n [0..n*n-1]
+
+shiftByOne :: Int -> [Int] -> [Int]
+shiftByOne n ys = concat [map (+ i) zs | (i, zs) <- zip [n+2..2*n+1]
+                                                    (chunks n ys [[]])]
+  where chunks m [] res = reverse (map reverse res)
+        chunks m (x : xs) [[]] = chunks m xs [[x]]
+        chunks m (x : xs) res
+          | length (head res) == m = chunks m xs ([x] : res)
+          | otherwise = chunks m xs ((x : (head res)) : (tail res))
+
 
 {-
  Processing MTabs
 -}
+{- |
+  Inital of the form
+     0  1  2  3 .
+     1  0 -1 -1 .
+     2 -1 -1 -1 .
+     3 -1 -1 -1 .
+     .  .  .  .
+  Note that the 0 at pos (1,1) is there to avoid index -1 issues
+-}
+
 genInitial :: MTab
 genInitial = V.fromList $ concat $ set : (map row (tail set))
-  where row m = m : (replicate (sizeM - 1) (-1))
+  where row 1 = 1 : 0 : (replicate (sizeM - 2) (-1))
+        row m = m : (replicate (sizeM - 1) (-1))
 
 procMTab :: Action -> MTab -> Maybe MTab
 procMTab a mtab =
-  join $ fmap (tupleUp mtab) (toRC $ fmap (+ (w a))
-                              (V.findIndex (== -1) mtab))
+  join $ fmap (upEntry mtab) (toRC (fmap (+ (w a))
+                                    (V.findIndex (== -1) mtab)))
   where w Fill = 0
         w Up = -1
-        tupleUp mtab = uncurry (upEntry mtab)
         toRC i = fmap (\x -> (x `quot` length set, x `mod` length set)) i
 
-upEntry :: MTab -> Int -> Int -> Maybe MTab
-upEntry mtab r c
-  | evalMTab mtab r c == maxEle = Nothing
-  | otherwise = fmap (\x -> replaceAtIndex (r * sizeM + c) x mtab) nextB
-  where constr = V.enumFromN 0 ((evalMTab mtab r c) + 1) V.++
+upEntry :: MTab -> (Int, Int) -> Maybe MTab
+upEntry mtab (r, c)
+  | indEle == maxEle = Nothing
+  | otherwise = fmap (\x -> replaceAtIndex ind x mtab) nextB
+  where ind = r * sizeM + c
+        indEle = mtab V.! ind
+        constr = V.enumFromN 0 (indEle + 1) V.++
                  (selectRow r mtab) V.++ (selectCol c mtab)
         nextB = nextBiggest constr
 
-selectRow :: Int -> MTab -> MTab
+selectRow :: Int -> MTab -> V.Vector Int
 selectRow ri xs = V.drop (sizeM * ri) $ V.take (sizeM * (ri + 1)) xs
 
-selectCol :: Int -> MTab -> MTab
+selectCol :: Int -> MTab -> V.Vector Int
 selectCol ci mtab = V.map (mtab V.!) (V.fromList indexList)
   where indexList = map (\x -> x * sizeM + ci) set
 
 replaceAtIndex :: Int -> Int -> MTab -> MTab
 replaceAtIndex n item mtab = V.update mtab (V.singleton (n, item))
 
-nextBiggest :: MTab -> Maybe Int
+nextBiggest :: V.Vector Int -> Maybe Int
 nextBiggest constr | null xs = Nothing
                    | otherwise = Just $ head xs
   where xs = [x | x <- set, not $ V.elem x constr]
+
+
+-- | Tries to increase the element at index i
+upEntry_ :: MTab -> Int -> Maybe MTab
+upEntry_ mtab i = upEntry mtab (i `quot` length set, i `mod` length set)
+
+{- | doStepIterZip
+
+  try to fill:
+      fail: fill not possible, no index shift, try up
+      s cm: up on current (surely fails, so up on previous)
+      s in: fill was possible >> test asoc
+          fail: up the newly filled entry: index shift + 1, r : t : ts
+          succ: fill from the newly filled entry: index shift + 1, r : t : ts
+  try to up:
+      fail: up not possible, discard t, index shift -1
+      succ: up was possible >> test asoc
+          fail: try up again on result, no index shift
+          succ: try fill on result, no index shift
+-}
+doStepIterZip :: [MTab] -> Zip -> IO ([MTab], Zip)
+doStepIterZip [] zi = return ([], zi)
+doStepIterZip (t : ts) (Fill, p, iord) = case upEntry_ t (iord V.! (p + 1)) of
+  Nothing -> do
+    printMTab t
+    putStrLn "Fill - Fail - *\n"
+    return (t : ts, (Up, p, iord))
+  Just r -> case isComplete r of
+    True -> do
+      printMTab t
+      putStrLn "Fill - succ - COMPLETE\n"
+      return (r : t : ts, (Up, p + 1, iord))
+    False -> case isAsocIncmpl r of
+      False -> do
+        printMTab t
+        putStrLn "Fill - Succ - a:False\n"
+        return (r : t : ts, (Up, p + 1, iord))
+      True -> do
+        printMTab t
+        putStrLn "Fill - Succ - a:True\n"
+        return (r : t : ts, (Fill, p + 1, iord))
+doStepIterZip (t : ts) (Up, p, iord) = case upEntry_ t (iord V.! p) of
+  Nothing -> do
+    printMTab t
+    putStrLn "Up - Fail - *\n"
+    return (ts, (Up, p - 1, iord))
+  Just r -> case isAsocIncmpl r of
+    False -> do
+      printMTab t
+      putStrLn "Up - Succ - a:False\n"
+      return (r : ts, (Up, p, iord))
+    True -> do
+      printMTab t
+      putStrLn "Up - Succ - a:True\n"
+      return (r : ts, (Fill, p, iord))
 
 
 -- | Pure, recursive
@@ -113,3 +194,22 @@ doStepIter Up (t : ts) = case procMTab Up t of
   Just r -> case isAsocIncmpl r of
     True -> (Fill, r : ts, Nothing)
     False -> (Up, r : ts, Nothing)
+
+
+{-
+ Printing MTabs pretty please
+-}
+printMTab :: MTab -> IO ()
+printMTab mtab | V.length mtab == 0 = putStrLn "empty MTab"
+               | otherwise = putStr $ showMTab mtab
+
+showMTab :: MTab -> String
+showMTab mtab = concat (map toString (rows mtab))
+
+rows :: MTab -> [MTab]
+rows mtab = map (\x -> selectRow x mtab) set
+
+toString :: MTab -> String
+toString row = concat $ (map (\x -> buff $ show x) (V.toList row)) ++ ["\n"]
+  where buff s | length s < 3 = buff (" " ++ s)
+               | otherwise = s
