@@ -12,7 +12,9 @@ import Gen
 
 
 type StepResult = (Action, [MTab], Maybe MTab)
-type Info = (Int)
+
+-- PCount, Count, Number, Time
+type Info = (Int, Int, Int, Integer)
 
 
 main_ :: IO ()
@@ -30,20 +32,41 @@ main_ = do
 main :: IO ()
 main = do
   let t0 = genInitial
-  let z0 = (Fill, 0, pathLine $ maxEle)
-  i0 <- doStepIterZip [t0] z0
-  (_, _, r) <- iterIOZip i0 0 []
-  --mapM_ printMTab (reverse (r ++ [head (fst i0)]))
-  --printMTab (head (fst i0))
+  --let z0 = (Fill, 0, pathLine $ maxEle)
+  let z0 = (Fill, 0, pathQuad $ maxEle)
+  let i0 = doStepIterZip [t0] z0
+  now <- getCPUTime
+  (_, _, _, (_, c, nu, _)) <- iterIOZip i0 (0, 0, 0, now) []
+  putStrLn $ "Number of valid mtabs : " ++ (show nu)
+  putStrLn $ "number of steps needed: " ++ (show c)
+  --mapM_ printMTab r
   return ()
 
 
-iterIOZip :: ([MTab], Zip) -> Info -> [MTab] -> IO ([MTab], Zip, [MTab])
-iterIOZip ([], z) _ res = return ([], z, res)
---iterIOZip (ts, z) 18 res = return (ts, z, res)
-iterIOZip (ts, z) cnt res = do
-  nextRes <- doStepIterZip ts z
-  iterIOZip nextRes (cnt + 1) ((head $ fst nextRes) : res)
+iterIOZip :: ([MTab], Zip) -> Info -> [MTab] -> IO ([MTab], Zip, [MTab], Info)
+iterIOZip ([], z) inf res = return ([], z, res, inf)
+iterIOZip (ts, z) (ic, c, nu, t) res = do
+  let m = 1000
+  (nc, nt) <- if ic == m
+              then do
+                now <- getCPUTime
+                let diff = (fromIntegral (now - t)) / (10^9) :: Double
+                clearScreen
+                printMTab (head ts)
+                putStrLn ("Time for " ++ (show m) ++ " steps: "
+                          ++ (show diff) ++ "ms")
+                putStrLn ("Total steps        : " ++ (show c) ++ " * "
+                          ++ (show m))
+                putStrLn ("Total groups       : " ++ (show nu))
+                return (c + 1, now)
+              else return (c, t)
+  let nextRes = doStepIterZip ts z
+  nnu <- case isCmpl (fst nextRes) of
+    True -> return (nu + 1)
+    False -> return nu
+  iterIOZip nextRes ((ic + 1) `mod` (m + 1), nc, nnu, nt) res
+    where isCmpl [] = False
+          isCmpl (x : xs) = isComplete x
 
 iterIO :: StepResult -> Int -> Int -> Int -> Integer -> Handle -> IO StepResult
 iterIO (a, [], mres) _ _ _ _ _ = return (a, [], mres)

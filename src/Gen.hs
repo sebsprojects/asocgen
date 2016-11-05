@@ -50,6 +50,21 @@ numEntries mtab = (V.length $ V.filter (>= 0) mtab) - maxEle * 2 + 1
 pathLine :: Int -> V.Vector Int
 pathLine n = V.fromList $ shiftByOne n [0..n*n-1]
 
+pathQuad :: Int -> V.Vector Int
+pathQuad n = V.fromList $ concat $ map (\m -> cycleN m n) [1..n]
+
+cycleN :: Int -> Int -> [Int]
+cycleN n d = reverse $ cycleN' [start] (cyc (n - 1))
+  where start = (d + 1) * n + 1
+        down = d + 1
+        cycleN' xs [] = xs
+        cycleN' (x : xs) (m : mov) = cycleN' ((m x down) : x : xs) mov
+
+cyc :: Int -> [Int -> Int -> Int]
+cyc n = (replicate n goRight) ++ (replicate n goDown)
+  where goRight i _ = i + 1
+        goDown i d = i - d
+
 shiftByOne :: Int -> [Int] -> [Int]
 shiftByOne n ys = concat [map (+ i) zs | (i, zs) <- zip [n+2..2*n+1]
                                                     (chunks n ys [[]])]
@@ -69,7 +84,7 @@ shiftByOne n ys = concat [map (+ i) zs | (i, zs) <- zip [n+2..2*n+1]
      1  0 -1 -1 .
      2 -1 -1 -1 .
      3 -1 -1 -1 .
-     .  .  .  .
+     .  .  .  . .
   Note that the 0 at pos (1,1) is there to avoid index -1 issues
 -}
 
@@ -120,7 +135,9 @@ upEntry_ mtab i = upEntry mtab (i `quot` length set, i `mod` length set)
 
   try to fill:
       fail: fill not possible, no index shift, try up
-      s cm: up on current (surely fails, so up on previous)
+      s cm: up on current (surely fails, but to transmit result
+                           try to up with p + 1, no outofbounds b/c up and
+                           not fill)
       s in: fill was possible >> test asoc
           fail: up the newly filled entry: index shift + 1, r : t : ts
           succ: fill from the newly filled entry: index shift + 1, r : t : ts
@@ -130,42 +147,61 @@ upEntry_ mtab i = upEntry mtab (i `quot` length set, i `mod` length set)
           fail: try up again on result, no index shift
           succ: try fill on result, no index shift
 -}
-doStepIterZip :: [MTab] -> Zip -> IO ([MTab], Zip)
-doStepIterZip [] zi = return ([], zi)
+doStepIterZip :: [MTab] -> Zip -> ([MTab], Zip)
+doStepIterZip [] zi = ([], zi)
 doStepIterZip (t : ts) (Fill, p, iord) = case upEntry_ t (iord V.! (p + 1)) of
+  Nothing -> (t : ts, (Up, p, iord))
+  Just r -> case isComplete r of
+    True -> (r : t : ts, (Up, p + 1, iord))
+    False -> case isAsocIncmpl r of
+      False -> (r : t : ts, (Up, p + 1, iord))
+      True -> (r : t : ts, (Fill, p + 1, iord))
+doStepIterZip (t : ts) (Up, p, iord) = case upEntry_ t (iord V.! p) of
+  Nothing -> (ts, (Up, p - 1, iord))
+  Just r -> case isAsocIncmpl r of
+    False -> (r : ts, (Up, p, iord))
+    True -> (r : ts, (Fill, p, iord))
+
+
+doStepIterZipIO :: [MTab] -> Zip -> IO ([MTab], Zip)
+doStepIterZipIO [] zi = return ([], zi)
+doStepIterZipIO (t : ts) (Fill, p, iord) = case upEntry_ t (iord V.! (p + 1)) of
   Nothing -> do
-    printMTab t
-    putStrLn "Fill - Fail - *\n"
+    --printMTab t
+    --putStrLn "Fill - Fail - *\n"
     return (t : ts, (Up, p, iord))
   Just r -> case isComplete r of
     True -> do
-      printMTab t
-      putStrLn "Fill - succ - COMPLETE\n"
+      --printMTab t
+      --putStrLn "Fill - succ - COMPLETE\n"
       return (r : t : ts, (Up, p + 1, iord))
     False -> case isAsocIncmpl r of
       False -> do
-        printMTab t
-        putStrLn "Fill - Succ - a:False\n"
+        --printMTab t
+        --putStrLn "Fill - Succ - a:False\n"
+        --putStrLn "Checked Asoc"
         return (r : t : ts, (Up, p + 1, iord))
       True -> do
-        printMTab t
-        putStrLn "Fill - Succ - a:True\n"
+        --printMTab t
+        --putStrLn "Fill - Succ - a:True\n"
+        --putStrLn "Checked Asoc"
         return (r : t : ts, (Fill, p + 1, iord))
-doStepIterZip (t : ts) (Up, p, iord) = case upEntry_ t (iord V.! p) of
+doStepIterZipIO (t : ts) (Up, p, iord) = case upEntry_ t (iord V.! p) of
   Nothing -> do
-    printMTab t
-    putStrLn "Up - Fail - *\n"
+    --printMTab t
+    --putStrLn "Up - Fail - *\n"
     return (ts, (Up, p - 1, iord))
   Just r -> case isAsocIncmpl r of
     False -> do
-      printMTab t
-      putStrLn "Up - Succ - a:False\n"
+      --printMTab t
+      --putStrLn "Up - Succ - a:False\n"
+      --putStrLn "Checked Asoc"
       return (r : ts, (Up, p, iord))
     True -> do
-      printMTab t
-      putStrLn "Up - Succ - a:True\n"
+      --printMTab t
+      --putStrLn "Up - Succ - a:True\n"
+      --putStrLn "Checked Asoc"
       return (r : ts, (Fill, p, iord))
-
 
 -- | Pure, recursive
 doStep :: Action -> ([MTab], [MTab]) -> ([MTab], [MTab])
