@@ -88,7 +88,10 @@ iterIO (a, ts, _) cnt tot num tm file= do
                 else return (tot, tm)
   let nextStep = doStepIter a ts
   nnum <- case nextStep of
-    (_, _, Just r) -> do hPutStr file ((showMTab r) ++ "\n")
+    (_, _, Just r) -> do --hPutStr file ((showMTab r) ++ "\n")
+                         case isAsoc r of
+                           False -> hPutStr file "NOT ASOC"
+                           True -> return ()
                          return (num + 1)
     (_, _, _) -> return num
   iterIO nextStep ((cnt + 1) `mod` (n + 1)) tott nnum ntm file
