@@ -6,22 +6,15 @@ import Control.Monad
 import Param
 
 
-{-
- Basics
--}
-
 data Action = Fill | Up
 
-{-
- Zipper: (Action to do, current position, iteration order)
--}
+-- Zipper: (Action to do, current position, iteration order)
 type Zip = (Action, Int, V.Vector Int)
 type MTab = V.Vector Int
 
 
 evalMTab :: MTab -> Int -> Int -> Int
 evalMTab mtab r c = mtab V.! (c + r * sizeM)
-
 
 isAsoc :: MTab -> Bool
 isAsoc mtab = null xs
@@ -40,7 +33,6 @@ isAsocIncmpl mtab = null xs
                 x_yz = f x yz
                 f = evalMTab mtab
 
-
 isComplete :: MTab -> Bool
 isComplete mtab = not (V.elem (-1) mtab)
 
@@ -58,6 +50,7 @@ cycleN n d = reverse $ cycleN' [start] (cyc (n - 1))
   where start = (d + 1) * n + 1
         down = d + 1
         cycleN' xs [] = xs
+        cycleN' [] _ = undefined --no compiler warning please
         cycleN' (x : xs) (m : mov) = cycleN' ((m x down) : x : xs) mov
 
 cyc :: Int -> [Int -> Int -> Int]
@@ -68,16 +61,12 @@ cyc n = (replicate n goRight) ++ (replicate n goDown)
 shiftByOne :: Int -> [Int] -> [Int]
 shiftByOne n ys = concat [map (+ i) zs | (i, zs) <- zip [n+2..2*n+1]
                                                     (chunks n ys [[]])]
-  where chunks m [] res = reverse (map reverse res)
+  where chunks _ [] res = reverse (map reverse res)
         chunks m (x : xs) [[]] = chunks m xs [[x]]
         chunks m (x : xs) res
           | length (head res) == m = chunks m xs ([x] : res)
           | otherwise = chunks m xs ((x : (head res)) : (tail res))
 
-
-{-
- Processing MTabs
--}
 {- |
   Inital of the form
      0  1  2  3 .
@@ -101,16 +90,6 @@ procMTab a mtab =
         w Up = -1
         toRC i = fmap (\x -> (x `quot` length set, x `mod` length set)) i
 
-upEntry :: MTab -> (Int, Int) -> Maybe MTab
-upEntry mtab (r, c)
-  | indEle == maxEle = Nothing
-  | otherwise = fmap (\x -> replaceAtIndex ind x mtab) nextB
-  where ind = r * sizeM + c
-        indEle = mtab V.! ind
-        constr = V.enumFromN 0 (indEle + 1) V.++
-                 (selectRow r mtab) V.++ (selectCol c mtab)
-        nextB = nextBiggest constr
-
 selectRow :: Int -> MTab -> V.Vector Int
 selectRow ri xs = V.drop (sizeM * ri) $ V.take (sizeM * (ri + 1)) xs
 
@@ -126,12 +105,22 @@ nextBiggest constr | null xs = Nothing
                    | otherwise = Just $ head xs
   where xs = [x | x <- set, not $ V.elem x constr]
 
+upEntry :: MTab -> (Int, Int) -> Maybe MTab
+upEntry mtab (r, c)
+  | indEle == maxEle = Nothing
+  | otherwise = fmap (\x -> replaceAtIndex ind x mtab) nextB
+  where ind = r * sizeM + c
+        indEle = mtab V.! ind
+        constr = V.enumFromN 0 (indEle + 1) V.++
+                 (selectRow r mtab) V.++ (selectCol c mtab)
+        nextB = nextBiggest constr
 
--- | Tries to increase the element at index i
+-- Tries to increase the element at index i
 upEntry_ :: MTab -> Int -> Maybe MTab
 upEntry_ mtab i = upEntry mtab (i `quot` length set, i `mod` length set)
 
-{- | doStepIterZip
+
+{- | doStep
 
   try to fill:
       fail: fill not possible, no index shift, try up
@@ -147,25 +136,25 @@ upEntry_ mtab i = upEntry mtab (i `quot` length set, i `mod` length set)
           fail: try up again on result, no index shift
           succ: try fill on result, no index shift
 -}
-doStepIterZip :: [MTab] -> Zip -> ([MTab], Zip)
-doStepIterZip [] zi = ([], zi)
-doStepIterZip (t : ts) (Fill, p, iord) = case upEntry_ t (iord V.! (p + 1)) of
+doStep :: [MTab] -> Zip -> ([MTab], Zip)
+doStep [] zi = ([], zi)
+doStep (t : ts) (Fill, p, iord) = case upEntry_ t (iord V.! (p + 1)) of
   Nothing -> (t : ts, (Up, p, iord))
   Just r -> case isComplete r of
     True -> (r : t : ts, (Up, p + 1, iord))
     False -> case isAsocIncmpl r of
       False -> (r : t : ts, (Up, p + 1, iord))
       True -> (r : t : ts, (Fill, p + 1, iord))
-doStepIterZip (t : ts) (Up, p, iord) = case upEntry_ t (iord V.! p) of
+doStep (t : ts) (Up, p, iord) = case upEntry_ t (iord V.! p) of
   Nothing -> (ts, (Up, p - 1, iord))
   Just r -> case isAsocIncmpl r of
     False -> (r : ts, (Up, p, iord))
     True -> (r : ts, (Fill, p, iord))
 
 
-doStepIterZipIO :: [MTab] -> Zip -> IO ([MTab], Zip)
-doStepIterZipIO [] zi = return ([], zi)
-doStepIterZipIO (t : ts) (Fill, p, iord) = case upEntry_ t (iord V.! (p + 1)) of
+doStepIO :: [MTab] -> Zip -> IO ([MTab], Zip)
+doStepIO [] zi = return ([], zi)
+doStepIO (t : ts) (Fill, p, iord) = case upEntry_ t (iord V.! (p + 1)) of
   Nothing -> do
     --printMTab t
     --putStrLn "Fill - Fail - *\n"
@@ -186,7 +175,7 @@ doStepIterZipIO (t : ts) (Fill, p, iord) = case upEntry_ t (iord V.! (p + 1)) of
         --putStrLn "Fill - Succ - a:True\n"
         --putStrLn "Checked Asoc"
         return (r : t : ts, (Fill, p + 1, iord))
-doStepIterZipIO (t : ts) (Up, p, iord) = case upEntry_ t (iord V.! p) of
+doStepIO (t : ts) (Up, p, iord) = case upEntry_ t (iord V.! p) of
   Nothing -> do
     --printMTab t
     --putStrLn "Up - Fail - *\n"
@@ -203,38 +192,7 @@ doStepIterZipIO (t : ts) (Up, p, iord) = case upEntry_ t (iord V.! p) of
       --putStrLn "Checked Asoc"
       return (r : ts, (Fill, p, iord))
 
--- | Pure, recursive
-doStep :: Action -> ([MTab], [MTab]) -> ([MTab], [MTab])
-doStep _ ([], res) = ([], res)
-doStep Fill (t : ts, res) = case procMTab Fill t of
-  Nothing -> doStep Up ((t : ts), res)
-  Just r -> case isComplete r of
-    True -> doStep Up (ts, r : res)
-    False -> doStep Fill (r : t : ts, res)
-doStep Up (t : ts, res) = case procMTab Up t of
-  Nothing -> doStep Up (ts, res)
-  Just r -> case isAsocIncmpl r of
-    True -> doStep Fill (r : ts, res)
-    False -> doStep Up (r : ts, res)
 
--- | Pure, for iteration
-doStepIter :: Action -> [MTab] -> (Action, [MTab], Maybe MTab)
-doStepIter _ [] = (Fill, [], Nothing)
-doStepIter Fill (t : ts) = case procMTab Fill t of
-  Nothing -> (Up, (t : ts), Nothing)
-  Just r -> case isComplete r of
-    True -> (Up, ts, Just r)
-    False -> (Fill, r : t : ts, Nothing)
-doStepIter Up (t : ts) = case procMTab Up t of
-  Nothing -> (Up, ts, Nothing)
-  Just r -> case isAsocIncmpl r of
-    True -> (Fill, r : ts, Nothing)
-    False -> (Up, r : ts, Nothing)
-
-
-{-
- Printing MTabs pretty please
--}
 printMTab :: MTab -> IO ()
 printMTab mtab | V.length mtab == 0 = putStrLn "empty MTab"
                | otherwise = putStr $ showMTab mtab
