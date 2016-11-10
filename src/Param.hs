@@ -1,7 +1,7 @@
 module Param where
 
 set :: [Int]
-set = [0..6]
+set = [0..7]
 
 maxEle :: Int
 maxEle = maximum set

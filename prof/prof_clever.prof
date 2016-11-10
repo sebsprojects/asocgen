@@ -1,0 +1,309 @@
+	Thu Nov 10 17:28 2016 Time and Allocation Profiling Report  (Final)
+
+	   asocgen +RTS -p -RTS
+
+	total time  =       21.73 secs   (21729 ticks @ 1000 us, 1 processor)
+	total alloc = 21,008,568,264 bytes  (excludes profiling overheads)
+
+COST CENTRE           MODULE  %time %alloc
+
+selectCol             Gen      12.4    7.5
+getPreimage           Gen      11.2    9.6
+upEntry.constr        Gen       8.3    7.6
+replaceAtIndex        Gen       5.9   13.2
+nextBiggest.xs        Gen       5.2    4.8
+checkABC_             Gen       4.1    0.0
+toRC                  Gen       4.1    2.2
+selectCol.indexList   Gen       3.6   14.7
+selectCol.indexList.\ Gen       3.2    2.6
+checkCAB_             Gen       2.5    0.0
+upEntry               Gen       2.3    2.7
+iterTest              Main      2.3    1.4
+checkABC_.ab_c        Gen       2.2    3.3
+checkABC              Gen       2.2    3.3
+doStepA               Gen       2.2    1.1
+iterTest.(...)        Main      1.9    0.9
+isAsocIncmpl2_        Gen       1.9    3.4
+checkCAB              Gen       1.8    2.7
+checkCAB_.c_ab        Gen       1.8    2.7
+checkABC_.bc          Gen       1.3    1.6
+selectRow             Gen       1.3    2.0
+checkA_               Gen       1.3    0.0
+checkABC_.a_bc        Gen       1.3    1.4
+checkA                Gen       1.3    0.9
+isAsocIncmpl2_.ab     Gen       1.2    0.5
+checkCAB_.ca          Gen       1.1    1.0
+isAsocIncmpl2_.ind    Gen       1.1    0.5
+checkB_               Gen       1.0    0.0
+upEntry_              Gen       0.8    1.1
+isAsocIncmpl2_.(...)  Gen       0.4    1.2
+
+
+                                                                                     individual      inherited
+COST CENTRE                     MODULE                            no.     entries  %time %alloc   %time %alloc
+
+MAIN                            MAIN                              177          0    0.0    0.0   100.0  100.0
+ mainT                          Main                              356          0    0.0    0.0   100.0  100.0
+  iterTest                      Main                              497    4719360    2.3    1.4   100.0  100.0
+   iterTest.nz                  Main                              593    4719359    0.0    0.0     0.0    0.0
+   iterTest.nts                 Main                              592    4719360    0.0    0.0     0.0    0.0
+   isComplete                   Gen                               589    4719360    0.6    0.0     0.6    0.0
+    sElems                      Data.Vector.Fusion.Bundle.Monadic 591    4719360    0.0    0.0     0.0    0.0
+    unId                        Data.Vector.Fusion.Util           590    4719360    0.0    0.0     0.0    0.0
+   iterTest.(...)               Main                              498    4719360    1.9    0.9    97.1   98.6
+    doStepA                     Gen                               499    4719360    2.2    1.1    95.2   97.7
+     isAsocIncmpl2_             Gen                               541    3536124    1.9    3.4    47.9   39.2
+      isAsocIncmpl2_.axy        Gen                               579    1589734    0.2    0.0     5.9    5.3
+       getPreimage              Gen                               580    1589734    4.6    4.5     5.7    5.3
+        toRC                    Gen                               583    5526002    1.1    0.8     1.1    0.8
+        unId                    Data.Vector.Fusion.Util           582   85284036    0.0    0.0     0.0    0.0
+        sElems                  Data.Vector.Fusion.Bundle.Monadic 581    1589734    0.0    0.0     0.0    0.0
+      isAsocIncmpl2_.bxy        Gen                               568    2168001    0.3    0.0     8.4    5.9
+       getPreimage              Gen                               569    2168001    6.5    5.1     8.1    5.9
+        toRC                    Gen                               572    6103891    1.6    0.9     1.6    0.9
+        unId                    Data.Vector.Fusion.Util           571  112838512    0.0    0.0     0.0    0.0
+        sElems                  Data.Vector.Fusion.Bundle.Monadic 570    2168001    0.0    0.0     0.0    0.0
+      isAsocIncmpl2_.a          Gen                               557    3536124    0.2    0.0     0.2    0.0
+      isAsocIncmpl2_.(...)      Gen                               553    3536124    0.4    1.2     1.8    1.8
+       toRC                     Gen                               554    3536124    1.4    0.5     1.4    0.5
+      isAsocIncmpl2_.b          Gen                               552    3536124    0.1    0.0     0.1    0.0
+      isAsocIncmpl2_.ind        Gen                               545    3536124    1.1    0.5     1.1    0.5
+       unId                     Data.Vector.Fusion.Util           546    7072248    0.0    0.0     0.0    0.0
+      isAsocIncmpl2_.ab         Gen                               544    3536124    1.2    0.5     1.2    0.5
+       unId                     Data.Vector.Fusion.Util           547    7072248    0.0    0.0     0.0    0.0
+      isAsocIncmpl2             Gen                               542    3536124    0.8    0.0    27.5   21.7
+       checkB                   Gen                               578    1589734    1.0    0.8     3.5    2.5
+        checkB_                 Gen                               584    5526002    1.0    0.0     2.5    1.6
+         checkB_.x_yb           Gen                               587    5038017    0.7    0.8     0.7    0.8
+          unId                  Data.Vector.Fusion.Util           588   10076034    0.0    0.0     0.0    0.0
+         checkB_.yb             Gen                               585    5526002    0.8    0.8     0.8    0.8
+          unId                  Data.Vector.Fusion.Util           586   11052004    0.0    0.0     0.0    0.0
+       checkA                   Gen                               567    2168001    1.3    0.9     4.3    2.7
+        checkA_                 Gen                               573    6103891    1.3    0.0     3.1    1.8
+         checkA_.ax_y           Gen                               576    5488167    0.8    0.8     0.8    0.8
+          unId                  Data.Vector.Fusion.Util           577   10976334    0.0    0.0     0.0    0.0
+         checkA_.ax             Gen                               574    6103891    0.9    0.9     0.9    0.9
+          unId                  Data.Vector.Fusion.Util           575   12207782    0.0    0.0     0.0    0.0
+       checkCAB                 Gen                               559    2247873    1.8    2.7     7.7    6.9
+        checkCAB_               Gen                               560   17580262    2.5    0.0     5.9    4.2
+         checkCAB_.ca_b         Gen                               565    3205424    0.4    0.5     0.4    0.5
+          unId                  Data.Vector.Fusion.Util           566    6410848    0.0    0.0     0.0    0.0
+         checkCAB_.ca           Gen                               563    6885322    1.1    1.0     1.1    1.0
+          unId                  Data.Vector.Fusion.Util           564   13770644    0.0    0.0     0.0    0.0
+         checkCAB_.c_ab         Gen                               561   17580262    1.8    2.7     1.8    2.7
+          unId                  Data.Vector.Fusion.Util           562   35160524    0.0    0.0     0.0    0.0
+       checkABC                 Gen                               543    3536124    2.2    3.3    11.1    9.7
+        checkABC_               Gen                               548   21767559    4.1    0.0     9.0    6.3
+         checkABC_.a_bc         Gen                               556    9472058    1.3    1.4     1.3    1.4
+          unId                  Data.Vector.Fusion.Util           558   18944116    0.0    0.0     0.0    0.0
+         checkABC_.bc           Gen                               551   10438374    1.3    1.6     1.3    1.6
+          unId                  Data.Vector.Fusion.Util           555   20876748    0.0    0.0     0.0    0.0
+         checkABC_.ab_c         Gen                               549   21767559    2.2    3.3     2.2    3.3
+          unId                  Data.Vector.Fusion.Util           550   43535118    0.0    0.0     0.0    0.0
+     isComplete                 Gen                               530    1180006    0.2    0.0     0.2    0.0
+      sElems                    Data.Vector.Fusion.Bundle.Monadic 532    1180006    0.0    0.0     0.0    0.0
+      unId                      Data.Vector.Fusion.Util           531    1180006    0.0    0.0     0.0    0.0
+     upEntry_                   Gen                               503    4719360    0.8    1.1    44.9   57.4
+      upEntry                   Gen                               504    4719360    2.3    2.7    44.1   56.3
+       upEntry.\                Gen                               533    3538884    0.2    0.5     6.1   13.7
+        replaceAtIndex          Gen                               534    3538884    5.9   13.2     5.9   13.2
+         sElems                 Data.Vector.Fusion.Bundle.Monadic 540    3538884    0.0    0.0     0.0    0.0
+         unId                   Data.Vector.Fusion.Util           539   17694420    0.0    0.0     0.0    0.0
+         sChunks                Data.Vector.Fusion.Bundle.Monadic 538    3538884    0.0    0.0     0.0    0.0
+         sizeOf                 Data.Primitive                    537   17694420    0.0    0.0     0.0    0.0
+         sSize                  Data.Vector.Fusion.Bundle.Monadic 536    3538884    0.0    0.0     0.0    0.0
+         upperBound             Data.Vector.Fusion.Bundle.Size    535    3538884    0.0    0.0     0.0    0.0
+       upEntry.constr           Gen                               513    4302250    8.3    7.6    28.8   34.4
+        selectCol               Gen                               521    4302250   12.4    7.5    19.2   24.9
+         selectCol.indexList    Gen                               528    4302250    3.6   14.7     6.8   17.4
+          selectCol.indexList.\ Gen                               529   34418000    3.2    2.6     3.2    2.6
+         unId                   Data.Vector.Fusion.Util           527   77440500    0.0    0.0     0.0    0.0
+         sChunks                Data.Vector.Fusion.Bundle.Monadic 526    4302250    0.0    0.0     0.0    0.0
+         sizeOf                 Data.Primitive                    525   38720250    0.0    0.0     0.0    0.0
+         sSize                  Data.Vector.Fusion.Bundle.Monadic 524    8604500    0.0    0.0     0.0    0.0
+         upperBound             Data.Vector.Fusion.Bundle.Size    523    4302250    0.0    0.0     0.0    0.0
+         sElems                 Data.Vector.Fusion.Bundle.Monadic 522    4302250    0.0    0.0     0.0    0.0
+        selectRow               Gen                               519    4302250    1.3    2.0     1.3    2.0
+         unId                   Data.Vector.Fusion.Util           520    8604500    0.0    0.0     0.0    0.0
+        unId                    Data.Vector.Fusion.Util           518   41085833    0.0    0.0     0.0    0.0
+        sChunks                 Data.Vector.Fusion.Bundle.Monadic 517    8604500    0.0    0.0     0.0    0.0
+        sizeOf                  Data.Primitive                    516   21511250    0.0    0.0     0.0    0.0
+        sSize                   Data.Vector.Fusion.Bundle.Monadic 515    8604500    0.0    0.0     0.0    0.0
+        upperBound              Data.Vector.Fusion.Bundle.Size    514    8604500    0.0    0.0     0.0    0.0
+       upEntry.nextB            Gen                               508    4302250    0.1    0.0     6.2    5.1
+        nextBiggest             Gen                               509    4302250    0.9    0.3     6.1    5.1
+         nextBiggest.xs         Gen                               510    4302250    5.2    4.8     5.2    4.8
+          sElems                Data.Vector.Fusion.Bundle.Monadic 512   20413886    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           511   20413886    0.0    0.0     0.0    0.0
+       upEntry.ind              Gen                               506    4719360    0.0    0.0     0.0    0.0
+       upEntry.indEle           Gen                               505    4719360    0.7    0.4     0.7    0.4
+        unId                    Data.Vector.Fusion.Util           507    9438720    0.0    0.0     0.0    0.0
+     unId                       Data.Vector.Fusion.Util           502    9438720    0.0    0.0     0.0    0.0
+ CAF:main1                      Main                              346          0    0.0    0.0     0.0    0.0
+  main                          Main                              354          1    0.0    0.0     0.0    0.0
+ CAF:main2                      Main                              344          0    0.0    0.0     0.0    0.0
+  mainT                         Main                              355          1    0.0    0.0     0.0    0.0
+ CAF:main3                      Main                              343          0    0.0    0.0     0.0    0.0
+  mainT                         Main                              357          0    0.0    0.0     0.0    0.0
+   iterTest                     Main                              358          1    0.0    0.0     0.0    0.0
+ CAF:main_z1                    Main                              342          0    0.0    0.0     0.0    0.0
+  mainT                         Main                              500          0    0.0    0.0     0.0    0.0
+   mainT.z1                     Main                              501          1    0.0    0.0     0.0    0.0
+ CAF:main_t1                    Main                              341          0    0.0    0.0     0.0    0.0
+  mainT                         Main                              359          0    0.0    0.0     0.0    0.0
+   mainT.t1                     Main                              360          1    0.0    0.0     0.0    0.0
+ CAF:main4                      Main                              340          0    0.0    0.0     0.0    0.0
+  mainT                         Main                              361          0    0.0    0.0     0.0    0.0
+   mainT.(...)                  Main                              362          1    0.0    0.0     0.0    0.0
+    doStepA                     Gen                               363          1    0.0    0.0     0.0    0.0
+     isAsocIncmpl2_             Gen                               448          1    0.0    0.0     0.0    0.0
+      isAsocIncmpl2_.axy        Gen                               487          1    0.0    0.0     0.0    0.0
+       getPreimage              Gen                               488          1    0.0    0.0     0.0    0.0
+        toRC                    Gen                               491          2    0.0    0.0     0.0    0.0
+        unId                    Data.Vector.Fusion.Util           490         65    0.0    0.0     0.0    0.0
+        sElems                  Data.Vector.Fusion.Bundle.Monadic 489          1    0.0    0.0     0.0    0.0
+      isAsocIncmpl2_.bxy        Gen                               476          1    0.0    0.0     0.0    0.0
+       getPreimage              Gen                               477          1    0.0    0.0     0.0    0.0
+        toRC                    Gen                               480          2    0.0    0.0     0.0    0.0
+        unId                    Data.Vector.Fusion.Util           479         65    0.0    0.0     0.0    0.0
+        sElems                  Data.Vector.Fusion.Bundle.Monadic 478          1    0.0    0.0     0.0    0.0
+      isAsocIncmpl2_.a          Gen                               465          1    0.0    0.0     0.0    0.0
+      isAsocIncmpl2_.(...)      Gen                               460          1    0.0    0.0     0.0    0.0
+       toRC                     Gen                               461          1    0.0    0.0     0.0    0.0
+      isAsocIncmpl2_.b          Gen                               459          1    0.0    0.0     0.0    0.0
+      isAsocIncmpl2_.ind        Gen                               452          1    0.0    0.0     0.0    0.0
+       unId                     Data.Vector.Fusion.Util           453          2    0.0    0.0     0.0    0.0
+      isAsocIncmpl2_.ab         Gen                               451          1    0.0    0.0     0.0    0.0
+       unId                     Data.Vector.Fusion.Util           454          2    0.0    0.0     0.0    0.0
+      isAsocIncmpl2             Gen                               449          1    0.0    0.0     0.0    0.0
+       checkB                   Gen                               486          1    0.0    0.0     0.0    0.0
+        checkB_                 Gen                               492          2    0.0    0.0     0.0    0.0
+         checkB_.x_yb           Gen                               495          2    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           496          4    0.0    0.0     0.0    0.0
+         checkB_.yb             Gen                               493          2    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           494          4    0.0    0.0     0.0    0.0
+       checkA                   Gen                               475          1    0.0    0.0     0.0    0.0
+        checkA_                 Gen                               481          2    0.0    0.0     0.0    0.0
+         checkA_.ax_y           Gen                               484          2    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           485          4    0.0    0.0     0.0    0.0
+         checkA_.ax             Gen                               482          2    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           483          4    0.0    0.0     0.0    0.0
+       checkCAB                 Gen                               467          1    0.0    0.0     0.0    0.0
+        checkCAB_               Gen                               468          8    0.0    0.0     0.0    0.0
+         checkCAB_.ca_b         Gen                               473          1    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           474          2    0.0    0.0     0.0    0.0
+         checkCAB_.ca           Gen                               471          1    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           472          2    0.0    0.0     0.0    0.0
+         checkCAB_.c_ab         Gen                               469          8    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           470         16    0.0    0.0     0.0    0.0
+       checkABC                 Gen                               450          1    0.0    0.0     0.0    0.0
+        checkABC_               Gen                               455          8    0.0    0.0     0.0    0.0
+         checkABC_.a_bc         Gen                               464          1    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           466          2    0.0    0.0     0.0    0.0
+         checkABC_.bc           Gen                               458          1    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           463          2    0.0    0.0     0.0    0.0
+         checkABC_.ab_c         Gen                               456          8    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           457         16    0.0    0.0     0.0    0.0
+     isComplete                 Gen                               437          1    0.0    0.0     0.0    0.0
+      sElems                    Data.Vector.Fusion.Bundle.Monadic 439          1    0.0    0.0     0.0    0.0
+      unId                      Data.Vector.Fusion.Util           438          1    0.0    0.0     0.0    0.0
+     upEntry_                   Gen                               387          1    0.0    0.0     0.0    0.0
+      upEntry                   Gen                               411          1    0.0    0.0     0.0    0.0
+       upEntry.\                Gen                               440          1    0.0    0.0     0.0    0.0
+        replaceAtIndex          Gen                               441          1    0.0    0.0     0.0    0.0
+         sElems                 Data.Vector.Fusion.Bundle.Monadic 447          1    0.0    0.0     0.0    0.0
+         unId                   Data.Vector.Fusion.Util           446          5    0.0    0.0     0.0    0.0
+         sChunks                Data.Vector.Fusion.Bundle.Monadic 445          1    0.0    0.0     0.0    0.0
+         sizeOf                 Data.Primitive                    444          5    0.0    0.0     0.0    0.0
+         sSize                  Data.Vector.Fusion.Bundle.Monadic 443          1    0.0    0.0     0.0    0.0
+         upperBound             Data.Vector.Fusion.Bundle.Size    442          1    0.0    0.0     0.0    0.0
+       upEntry.constr           Gen                               420          1    0.0    0.0     0.0    0.0
+        selectCol               Gen                               428          1    0.0    0.0     0.0    0.0
+         selectCol.indexList    Gen                               435          1    0.0    0.0     0.0    0.0
+          selectCol.indexList.\ Gen                               436          8    0.0    0.0     0.0    0.0
+         unId                   Data.Vector.Fusion.Util           434         18    0.0    0.0     0.0    0.0
+         sChunks                Data.Vector.Fusion.Bundle.Monadic 433          1    0.0    0.0     0.0    0.0
+         sizeOf                 Data.Primitive                    432          9    0.0    0.0     0.0    0.0
+         sSize                  Data.Vector.Fusion.Bundle.Monadic 431          2    0.0    0.0     0.0    0.0
+         upperBound             Data.Vector.Fusion.Bundle.Size    430          1    0.0    0.0     0.0    0.0
+         sElems                 Data.Vector.Fusion.Bundle.Monadic 429          1    0.0    0.0     0.0    0.0
+        selectRow               Gen                               426          1    0.0    0.0     0.0    0.0
+         unId                   Data.Vector.Fusion.Util           427          2    0.0    0.0     0.0    0.0
+        unId                    Data.Vector.Fusion.Util           425          7    0.0    0.0     0.0    0.0
+        sChunks                 Data.Vector.Fusion.Bundle.Monadic 424          2    0.0    0.0     0.0    0.0
+        sizeOf                  Data.Primitive                    423          5    0.0    0.0     0.0    0.0
+        sSize                   Data.Vector.Fusion.Bundle.Monadic 422          2    0.0    0.0     0.0    0.0
+        upperBound              Data.Vector.Fusion.Bundle.Size    421          2    0.0    0.0     0.0    0.0
+       upEntry.nextB            Gen                               415          1    0.0    0.0     0.0    0.0
+        nextBiggest             Gen                               416          1    0.0    0.0     0.0    0.0
+         nextBiggest.xs         Gen                               417          1    0.0    0.0     0.0    0.0
+          sElems                Data.Vector.Fusion.Bundle.Monadic 419          4    0.0    0.0     0.0    0.0
+          unId                  Data.Vector.Fusion.Util           418          4    0.0    0.0     0.0    0.0
+       upEntry.ind              Gen                               413          1    0.0    0.0     0.0    0.0
+       upEntry.indEle           Gen                               412          1    0.0    0.0     0.0    0.0
+        unId                    Data.Vector.Fusion.Util           414          2    0.0    0.0     0.0    0.0
+     unId                       Data.Vector.Fusion.Util           366          2    0.0    0.0     0.0    0.0
+ CAF:main8                      Main                              339          0    0.0    0.0     0.0    0.0
+  mainT                         Main                              388          0    0.0    0.0     0.0    0.0
+   mainT.t0                     Main                              390          1    0.0    0.0     0.0    0.0
+   mainT.(...)                  Main                              389          0    0.0    0.0     0.0    0.0
+ CAF:main_z0                    Main                              338          0    0.0    0.0     0.0    0.0
+  mainT                         Main                              364          0    0.0    0.0     0.0    0.0
+   mainT.z0                     Main                              365          1    0.0    0.0     0.0    0.0
+ CAF:main5                      Main                              337          0    0.0    0.0     0.0    0.0
+  mainT                         Main                              367          0    0.0    0.0     0.0    0.0
+   mainT.z0                     Main                              368          0    0.0    0.0     0.0    0.0
+    pathQuad                    Gen                               371          1    0.0    0.0     0.0    0.0
+     pathQuad.\                 Gen                               378          7    0.0    0.0     0.0    0.0
+      cycleN                    Gen                               379          7    0.0    0.0     0.0    0.0
+       cycleN.down              Gen                               386          6    0.0    0.0     0.0    0.0
+       cycleN.start             Gen                               382          7    0.0    0.0     0.0    0.0
+       cycleN.cycleN'           Gen                               381         49    0.0    0.0     0.0    0.0
+        cyc.goDown              Gen                               385         21    0.0    0.0     0.0    0.0
+        cyc.goRight             Gen                               383         21    0.0    0.0     0.0    0.0
+       cyc                      Gen                               380          7    0.0    0.0     0.0    0.0
+     unId                       Data.Vector.Fusion.Util           377         50    0.0    0.0     0.0    0.0
+     sChunks                    Data.Vector.Fusion.Bundle.Monadic 376          1    0.0    0.0     0.0    0.0
+     sizeOf                     Data.Primitive                    374         15    0.0    0.0     0.0    0.0
+     sSize                      Data.Vector.Fusion.Bundle.Monadic 373          1    0.0    0.0     0.0    0.0
+     upperBound                 Data.Vector.Fusion.Bundle.Size    372          1    0.0    0.0     0.0    0.0
+ CAF:sizeM                      Param                             331          0    0.0    0.0     0.0    0.0
+  sizeM                         Param                             405          1    0.0    0.0     0.0    0.0
+ CAF:maxEle                     Param                             330          0    0.0    0.0     0.0    0.0
+  maxEle                        Param                             369          1    0.0    0.0     0.0    0.0
+ CAF:set                        Param                             329          0    0.0    0.0     0.0    0.0
+  set                           Param                             370          1    0.0    0.0     0.0    0.0
+ CAF:genInitial                 Gen                               314          0    0.0    0.0     0.0    0.0
+  genInitial                    Gen                               391          1    0.0    0.0     0.0    0.0
+   unId                         Data.Vector.Fusion.Util           396         65    0.0    0.0     0.0    0.0
+   sChunks                      Data.Vector.Fusion.Bundle.Monadic 395          1    0.0    0.0     0.0    0.0
+   sizeOf                       Data.Primitive                    394         15    0.0    0.0     0.0    0.0
+   sSize                        Data.Vector.Fusion.Bundle.Monadic 393          1    0.0    0.0     0.0    0.0
+   upperBound                   Data.Vector.Fusion.Bundle.Size    392          1    0.0    0.0     0.0    0.0
+ CAF:lvl127_ruL8                Gen                               307          0    0.0    0.0     0.0    0.0
+  genInitial                    Gen                               397          0    0.0    0.0     0.0    0.0
+ CAF:lvl126_ruL5                Gen                               306          0    0.0    0.0     0.0    0.0
+  genInitial                    Gen                               398          0    0.0    0.0     0.0    0.0
+   genInitial.row               Gen                               400          7    0.0    0.0     0.0    0.0
+ CAF:lvl122_ruL1                Gen                               304          0    0.0    0.0     0.0    0.0
+  genInitial                    Gen                               401          0    0.0    0.0     0.0    0.0
+   genInitial.row               Gen                               402          0    0.0    0.0     0.0    0.0
+ CAF:lvl121_ruKZ                Gen                               303          0    0.0    0.0     0.0    0.0
+  genInitial                    Gen                               403          0    0.0    0.0     0.0    0.0
+   genInitial.row               Gen                               404          0    0.0    0.0     0.0    0.0
+ CAF:lvl120_ruKY                Gen                               302          0    0.0    0.0     0.0    0.0
+  genInitial                    Gen                               406          0    0.0    0.0     0.0    0.0
+   genInitial.row               Gen                               407          0    0.0    0.0     0.0    0.0
+ CAF:lvl117_ruKU                Gen                               301          0    0.0    0.0     0.0    0.0
+  genInitial                    Gen                               408          0    0.0    0.0     0.0    0.0
+   genInitial.row               Gen                               409          0    0.0    0.0     0.0    0.0
+ CAF:toRC1                      Gen                               294          0    0.0    0.0     0.0    0.0
+  toRC                          Gen                               462          0    0.0    0.0     0.0    0.0
+ CAF:upEntry_1                  Gen                               292          0    0.0    0.0     0.0    0.0
+  upEntry_                      Gen                               410          0    0.0    0.0     0.0    0.0
+ CAF                            Data.Primitive.MachDeps           226          0    0.0    0.0     0.0    0.0
+  sIZEOF_INT                    Data.Primitive.MachDeps           375          1    0.0    0.0     0.0    0.0
+ CAF                            GHC.IO.Handle.FD                  222          0    0.0    0.0     0.0    0.0
+ CAF                            GHC.IO.Encoding                   215          0    0.0    0.0     0.0    0.0
+ CAF                            GHC.Conc.Signal                   210          0    0.0    0.0     0.0    0.0
+ CAF                            GHC.IO.Encoding.Iconv             198          0    0.0    0.0     0.0    0.0
