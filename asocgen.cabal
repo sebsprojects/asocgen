@@ -1,5 +1,5 @@
 name:                asocgen
-version:             0.1.0.1
+version:             0.1.0.2
 synopsis:            Generating associative structures
 
 homepage:            http://elfeck.com
@@ -18,8 +18,6 @@ executable asocgen
   ghc-options:         -Wall -O2
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings
-  other-modules:       Gen
-                     , Param
   build-depends:       base
                      , ansi-terminal
                      , time
