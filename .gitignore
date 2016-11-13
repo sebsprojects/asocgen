@@ -1,3 +1,6 @@
-.stack-work
 /saves
 /prof
+/_old
+
+.stack-work
+*.prof
