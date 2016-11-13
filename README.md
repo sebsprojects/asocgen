@@ -10,7 +10,10 @@ associative structures. So here I am searching for them in haskell.
   help associativity detection.
 
 # TODO
-* Make sure tail set really works as intended
+* Make sure tail set really works as intended (ie tests, ya know)
 * Optimize low-hanging fruits: selectCol atal
 
 * Multithreading
+* GC analysis
+
+* Pass around global state object (or use reader)

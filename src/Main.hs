@@ -16,14 +16,14 @@ type StepFun = [MTab] -> Zip -> ([MTab], Zip)
 
 
 main :: IO ()
-main = mainT
+main = mainN
 
 mainN :: IO ()
 mainN = do
   let t0 = genInitial
   --let z0 = (Fill, 0, pathLine $ maxEle)
   let z0 = (Fill, 0, pathQuad $ maxEle)
-  let i0 = doStep [t0] z0
+  let i0 = doStepA [t0] z0
   now <- getCPUTime
   (_, _, (_, c, nu, _)) <- iter i0 (0, 0, 0, now)
   putStrLn $ "Number of valid mtabs : " ++ (show nu)
@@ -42,7 +42,7 @@ mainT = do
 iter :: ([MTab], Zip) -> Info -> IO ([MTab], Zip, Info)
 iter ([], z) inf = return ([], z, inf)
 iter (ts, z) (ic, c, nu, t) = do
-  let m = 1000
+  let m = 10000
   (nc, nt) <- if ic == m
               then do
                 now <- getCPUTime
@@ -56,7 +56,7 @@ iter (ts, z) (ic, c, nu, t) = do
                 putStrLn ("Total groups       : " ++ (show nu))
                 return (c + 1, now)
               else return (c, t)
-  let nextRes = doStep ts z
+  let nextRes = doStepA ts z
   nnu <- case isCmpl (fst nextRes) of
     True -> return (nu + 1)
     False -> return nu

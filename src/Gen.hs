@@ -7,6 +7,9 @@ import Param
 
 data Action = Fill | Up
 
+-- Param: (n, Set, Col Indices) Precomputed
+type Param = (Int, V.Vector Int, [V.Vector Int])
+
 -- Zipper: (Action to do, current position, iteration order)
 type Zip = (Action, Int, V.Vector Int)
 type MTab = V.Vector Int
@@ -187,8 +190,10 @@ selectRow :: Int -> MTab -> V.Vector Int
 selectRow ri xs = V.drop (sizeM * ri) $ V.take (sizeM * (ri + 1)) xs
 
 selectCol :: Int -> MTab -> V.Vector Int
-selectCol ci mtab = V.map (mtab V.!) (V.fromList indexList)
-  where indexList = map (\x -> x * sizeM + ci) set
+--selectCol ci mtab = V.map (mtab V.!) (V.fromList indexList)
+--  where indexList = map (\x -> x * sizeM + ci) set
+selectCol ci mtab = V.map (mtab V.!) (colIndices !! ci)
+
 
 replaceAtIndex :: Int -> Int -> MTab -> MTab
 replaceAtIndex n item mtab = V.update mtab (V.singleton (n, item))
