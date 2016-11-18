@@ -1,7 +1,7 @@
 /saves
 /prof
 /_old
-/bin
+cversion/bin
 
 .stack-work
 *.prof

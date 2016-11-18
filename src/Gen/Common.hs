@@ -9,7 +9,7 @@ module Gen.Common ( Param
                   , isComplete
                   , paramN
                   , printMTab
-                  , showMTab) where
+                  , showMTab ) where
 
 import qualified Data.Vector.Unboxed as V
 

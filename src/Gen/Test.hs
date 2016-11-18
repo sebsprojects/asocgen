@@ -12,7 +12,7 @@ test1 = do
   let param = paramN 9
   now <- getCPUTime
   let info = (0, 0, 0, now)
-  (_, (isteps, steps, groups, _)) <- runGenIO param info printMeta
+  (_, (isteps, steps, groups, _)) <- runGenM param info printMeta
   putStrLn $ "\nFinal report: "
   putStrLn $ "Number of steps x 10^5   :   " ++ (show $ steps) ++ " ("
     ++ (show isteps) ++ ")"

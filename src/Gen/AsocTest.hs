@@ -2,7 +2,7 @@ module Gen.AsocTest ( isAsocToList
                     , isAsocIncmplToList
                     , isAsocIncmplRec
                     , isAsocIncmplIO
-                    , isAsocIncmplIncrm) where
+                    , isAsocIncmplIncrm ) where
 
 import qualified Data.Vector.Unboxed as V
 import Gen.Common

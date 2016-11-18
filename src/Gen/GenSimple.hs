@@ -1,4 +1,5 @@
-module Gen.GenSimple where
+module Gen.GenSimple ( runGenM
+                     , runGenSilent ) where
 
 import qualified Data.Vector.Unboxed as V
 
@@ -46,9 +47,6 @@ upEntry (s, set, cols) mtab ind
         nextB = nextBiggest set constr
         maxE = s - 1
 
-pathLine :: Int -> V.Vector Int
-pathLine n = V.fromList $ shiftByOne n [0..n*n-1]
-
 pathQuad :: Int -> V.Vector Int
 pathQuad n = V.fromList $ concat $ map (\m -> cycleN m n) [1..n]
 
@@ -64,6 +62,9 @@ cyc :: Int -> [Int -> Int -> Int]
 cyc n = (replicate n goRight) ++ (replicate n goDown)
   where goRight i _ = i + 1
         goDown i d = i - d
+
+pathLine :: Int -> V.Vector Int
+pathLine n = V.fromList $ shiftByOne n [0..n*n-1]
 
 shiftByOne :: Int -> [Int] -> [Int]
 shiftByOne n ys = concat [map (+ i) zs | (i, zs) <- zip [n+2..2*n+1]
@@ -179,9 +180,10 @@ doStepIO pr (t : ts) (Up, p, iord) = case upEntry pr t (iord V.! p) of
       True -> do
         return (r : ts, (Fill, p, iord))
 
--- | Run generation in a IO setting
-runGenIO :: Param -> info -> (SRes -> info -> IO info) -> IO (SRes, info)
-runGenIO param info f = do
+-- | Run generation in a monadic setting
+runGenM :: Monad m => Param -> info -> (SRes -> info -> m info)
+          -> m (SRes, info)
+runGenM param info f = do
   let t0 = genInitial param
   let z0 = (Fill, 0, pathQuad $ (\(s, _, _) -> s - 1) param)
   let s1 = doStep param [t0] z0
@@ -191,12 +193,12 @@ runGenIO param info f = do
 -- | Run generation without any output
 runGenSilent :: Param -> IO ()
 runGenSilent param = do
-  _ <- runGenIO param [] (\_ _ -> return [])
+  _ <- runGenM param [] (\_ _ -> return [])
   return ()
 
 -- | Iteration by recursion
-iterGen :: Param -> SRes -> info -> (SRes -> info -> IO info)
-           -> IO (SRes, info)
+iterGen :: Monad m => Param -> SRes -> info -> (SRes -> info -> m info)
+           -> m (SRes, info)
 iterGen _ ([], z) info _ = return (([], z), info)
 iterGen param (ts, z) info f = do
   let sn = doStep param ts z
