@@ -2,41 +2,19 @@
 
 #include <iostream>
 #include <sstream>
-
 #include <vector>
 
 #include "Asocgen.h"
 
 
-int n = 32;
-int num_groups = 0;
-
-int main() {
-
-  // Init
-  std::vector<int> mtab(n * n, -1);
-  std::vector<int> iord((n - 1) * (n - 1), -1);
-
-  initIOrd(&iord);
-  initMTab(&mtab);
-
-  Zip zip(iord);
-
-  bool notDone = true;
-  while(notDone) {
-    notDone = doStep(&mtab, &zip);
-  }
-  std::cout << "Total num groups: " << num_groups << std::endl;
-}
-
-bool doStep(std::vector<int>* mtab, Zip* zip) {
+bool doStep(std::vector<int>* mtab, Zip* zip, Info* info) {
   //std::cout << "last entry: " << zip->lastEntry << std::endl;
   //std::cout << std::endl;
 
   if(zip->isOverEnd()) {
-    printMTab(mtab);
+    printMTab(zip->n, mtab);
     std::cout << std::endl;
-    num_groups++;
+    info->num_groups++;
     zip->pos--;
   }
 
@@ -64,16 +42,17 @@ bool isAsocIncmplNaive(std::vector<int>* mtab, Zip* zip) {
   int ab_c = -2;
   int bc = -2;
   int a_bc = -2;
+  int n = zip->n;
   for(int a = 0; a < n; a++) {
     for(int b = 0; b < n; b++) {
       for(int c = 0; c < n; c++) {
-	ab = mtab->at(getMTabIndex(a, b));
+	ab = mtab->at(getMTabIndex(n, a, b));
 	if(ab < 0) continue;
-	bc = mtab->at(getMTabIndex(b, c));
+	bc = mtab->at(getMTabIndex(n, b, c));
 	if(bc < 0) continue;
-	ab_c = mtab->at(getMTabIndex(ab, c));
+	ab_c = mtab->at(getMTabIndex(n, ab, c));
 	if(ab_c < 0) continue;
-	a_bc = mtab->at(getMTabIndex(a, bc));
+	a_bc = mtab->at(getMTabIndex(n, a, bc));
 	if(a_bc < 0) continue;
 	if(ab_c != a_bc) return false;
       }
@@ -83,9 +62,10 @@ bool isAsocIncmplNaive(std::vector<int>* mtab, Zip* zip) {
 }
 
 bool isAsocIncmplIncrm(std::vector<int>* mtab, Zip* zip) {
+  int n = zip->n;
   int index = zip->getMTabIndexAtLast();
-  int a = getRowIndex(index);
-  int b = getColIndex(index);
+  int a = getRowIndex(n, index);
+  int b = getColIndex(n, index);
   int ab = mtab->at(index);
 
   // check ab_c = a_bc
@@ -93,11 +73,11 @@ bool isAsocIncmplIncrm(std::vector<int>* mtab, Zip* zip) {
   int ab_c = -2;
   int a_bc = -2;
   for(int c = 0; c < n; c++) {
-    bc = mtab->at(getMTabIndex(b, c));
+    bc = mtab->at(getMTabIndex(n, b, c));
     if(bc < 0) continue;
-    a_bc = mtab->at(getMTabIndex(a, bc));
+    a_bc = mtab->at(getMTabIndex(n, a, bc));
     if(a_bc < 0) continue;
-    ab_c = mtab->at(getMTabIndex(ab, c));
+    ab_c = mtab->at(getMTabIndex(n, ab, c));
     if(ab_c < 0) continue;
     if(ab_c != a_bc) return false;
   }
@@ -107,11 +87,11 @@ bool isAsocIncmplIncrm(std::vector<int>* mtab, Zip* zip) {
   int c_ab = -2;
   int ca_b = -2;
   for(int c = 0; c < n; c++) {
-    ca = mtab->at(getMTabIndex(c, a));
+    ca = mtab->at(getMTabIndex(n, c, a));
     if(ca < 0) continue;
-    ca_b = mtab->at(getMTabIndex(ca, b));
+    ca_b = mtab->at(getMTabIndex(n, ca, b));
     if(ca_b < 0) continue;
-    c_ab = mtab->at(getMTabIndex(c, ab));
+    c_ab = mtab->at(getMTabIndex(n, c, ab));
     if(c_ab < 0) continue;
     if(ca_b != c_ab) return false;
   }
@@ -124,11 +104,11 @@ bool isAsocIncmplIncrm(std::vector<int>* mtab, Zip* zip) {
   for(size_t i = 0; i < mtab->size(); i++) {
     ele = mtab->at(i);
     if(ele == a) {
-      x = getRowIndex(i);
-      y = getColIndex(i);
-      yb = mtab->at(getMTabIndex(y, b));
+      x = getRowIndex(n, i);
+      y = getColIndex(n, i);
+      yb = mtab->at(getMTabIndex(n, y, b));
       if(yb < 0) continue;
-      x_yb = mtab->at(getMTabIndex(x, yb));
+      x_yb = mtab->at(getMTabIndex(n, x, yb));
       if(x_yb < 0) continue;
       if(x_yb != ab) return false;
     }
@@ -140,11 +120,11 @@ bool isAsocIncmplIncrm(std::vector<int>* mtab, Zip* zip) {
   for(size_t i = 0; i < mtab->size(); i++) {
     ele = mtab->at(i);
     if(ele == b) {
-      x = getRowIndex(i);
-      y = getColIndex(i);
-      ax = mtab->at(getMTabIndex(a, x));
+      x = getRowIndex(n, i);
+      y = getColIndex(n, i);
+      ax = mtab->at(getMTabIndex(n, a, x));
       if(ax < 0) continue;
-      ax_y = mtab->at(getMTabIndex(ax, y));
+      ax_y = mtab->at(getMTabIndex(n, ax, y));
       if(ax_y < 0) continue;
       if(ax_y != ab) return false;
     }
@@ -153,9 +133,10 @@ bool isAsocIncmplIncrm(std::vector<int>* mtab, Zip* zip) {
 }
 
 void upEntry(std::vector<int>* mtab, Zip* zip) {
+  int n = zip->n;
   int index = zip->getMTabIndexAtPos();
-  int r = getRowIndex(index);
-  int c = getColIndex(index);
+  int r = getRowIndex(n, index);
+  int c = getColIndex(n, index);
   int currentEle = mtab->at(index);
 
   //std::cout << "Before upEntry:" << std::endl;
@@ -210,7 +191,7 @@ void upEntry(std::vector<int>* mtab, Zip* zip) {
   //std::cout << "====================================" << std::endl;
 }
 
-void initIOrd(std::vector<int>* iord) {
+void initIOrd(int n, std::vector<int>* iord) {
   int pos = 0;
   int val = 0;
   for(int i = 1; i < n; i++) {
@@ -230,7 +211,7 @@ void initIOrd(std::vector<int>* iord) {
   }
 }
 
-void initMTab(std::vector<int>* mtab, int init) {
+void initMTab(int n, std::vector<int>* mtab, int init) {
   for(int i = 0; i < n; i++) {
     mtab->at(i) = i;
     mtab->at(i * n) = i;
@@ -238,15 +219,15 @@ void initMTab(std::vector<int>* mtab, int init) {
   mtab->at(n + 1) = init;
 }
 
-int getRowIndex(int index) {
+int getRowIndex(int n, int index) {
   return index / n;
 }
 
-int getColIndex(int index) {
+int getColIndex(int n, int index) {
   return index % n;
 }
 
-int getMTabIndex(int row, int col) {
+int getMTabIndex(int n, int row, int col) {
   return row * n + col;
 }
 
@@ -261,7 +242,7 @@ void printVector(std::vector<int>* vec) {
   std::cout << ss.str() << std::endl;
 }
 
-void printMTab(std::vector<int>* mtab) {
+void printMTab(int n, std::vector<int>* mtab) {
   int ele = -2;
   std::stringstream ss;
   for(int r = 0; r < n; r++) {

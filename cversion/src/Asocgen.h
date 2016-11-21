@@ -6,36 +6,39 @@
 #include <vector>
 
 class Zip;
+class Info;
 
-void printMTab(std::vector<int>* mtab);
+void printMTab(int n, std::vector<int>* mtab);
 void printVector(std::vector<int>* vec);
 
-void initIOrd(std::vector<int>* iord);
-void initMTab(std::vector<int>* mtab, int init = 0);
+void initIOrd(int n, std::vector<int>* iord);
+void initMTab(int n, std::vector<int>* mtab, int init = 0);
 
 void upEntry(std::vector<int>* mtab, Zip* zip);
-bool doStep(std::vector<int>* mtab, Zip* zip);
+bool doStep(std::vector<int>* mtab, Zip* zip, Info* info);
 
 bool isAsocIncmplNaive(std::vector<int>*, Zip* zip);
 bool isAsocIncmplIncrm(std::vector<int>*, Zip* zip);
 
-int getRowIndex(int row);
-int getColIndex(int col);
+inline int getRowIndex(int n, int row);
+inline int getColIndex(int n, int col);
 
-inline int getMTabIndex(int row, int col);
+inline int getMTabIndex(int n, int row, int col);
 
 
 class Zip {
 
  public:
+  int n;
   int pos;
   int lastEntry;
   std::vector<int> iord;
 
-  Zip(std::vector<int> iordv, int p = 1) :
-    pos(p), lastEntry(p - 1), iord(iordv)
+  Zip(int n, std::vector<int> iordv, int p = 1) :
+    n(n), pos(p), lastEntry(p - 1), iord(iordv)
   {
   };
+  ~Zip() { };
 
   int getMTabIndexAtPos() { return iord.at(pos); }
   int getMTabIndexAtLast() { return iord.at(lastEntry); }
@@ -48,4 +51,16 @@ class Zip {
     return ss.str();
   }
 };
+
+
+class Info {
+
+public:
+  int num_groups;
+
+  Info() : num_groups(0) { };
+  ~Info() { };
+
+};
+
 #endif
