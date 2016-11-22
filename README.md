@@ -17,3 +17,6 @@ associative structures. So here I am searching for them in haskell.
 * GC analysis
 
 * Pass around global state object (or use reader)
+
+# CVersion
+* Check at vs [] in performance critical code

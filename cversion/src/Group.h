@@ -3,6 +3,7 @@
 
 #include <vector>
 
+
 template <class V>
 class Group {
 
@@ -28,11 +29,31 @@ public:
     return mtab.at(r * order + c);
   }
 
+  virtual V getOne() const {
+    return one;
+  }
+
+  virtual V getInv(V a) const {
+    int index = -1;
+    for(int i = 0; i < order; i++) {
+      if(set.at(i) == a) {
+	index = i;
+	break;
+      }
+    }
+    return invs.at(index);
+  }
+
 protected:
   V one;
   std::vector<V> invs;
-
   bool valid;
+
+  void validate();
+  bool isAsoc();
+
+  void compOne();
+  void compInvs();
 
 };
 
