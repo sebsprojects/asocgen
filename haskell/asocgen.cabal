@@ -3,8 +3,6 @@ version:             0.1.0.2
 synopsis:            Generating associative structures
 
 homepage:            http://elfeck.com
-license:             MIT
-license-file:        LICENSE
 author:              Sebastian Kreisel
 maintainer:          kreisel.sebastian@gmail.com
 
