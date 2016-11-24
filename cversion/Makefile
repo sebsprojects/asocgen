@@ -1,6 +1,5 @@
 CC = gcc
 CC_FLAGS = -Wall -O3 -DBOUNDS_CHECK
-
 LN_FLAGS =
 
 INCLUDES = -I.src/

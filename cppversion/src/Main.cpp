@@ -4,7 +4,7 @@
 #include "Asocgen.h"
 
 int main() {
-  int n = 9;
+  int n = 8;
 
   // Init
   std::vector<int> mtab(n * n, -1);

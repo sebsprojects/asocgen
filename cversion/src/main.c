@@ -6,7 +6,7 @@
 
 
 int main() {
-  uint8_t n = 10;
+  uint8_t n = 8;
   Zip zipv = allocZip(n);
   Info infov; infov.numGroups = 0;
   Info *info = &infov;

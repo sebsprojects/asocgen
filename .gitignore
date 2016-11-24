@@ -2,6 +2,7 @@
 /prof
 /_old
 cversion/bin
+cppversion/bin
 
 .stack-work
 *.prof
