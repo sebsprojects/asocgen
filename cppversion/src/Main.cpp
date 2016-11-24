@@ -2,10 +2,9 @@
 #include <iostream>
 
 #include "Asocgen.h"
-#include "GroupCn.h"
 
 int main() {
-  int n = 8;
+  int n = 9;
 
   // Init
   std::vector<int> mtab(n * n, -1);

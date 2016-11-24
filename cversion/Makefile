@@ -1,20 +1,43 @@
-BUILDFLAGS = -Wall -O3
+CC = gcc
+CC_FLAGS = -Wall -O3 -DBOUNDS_CHECK
 
-INCLUDES = -I./src/
+LN_FLAGS =
 
-CPP_FILES = $(wildcard src/*.cpp)
-OBJ_FILES = $(addprefix bin/,$(notdir $(CPP_FILES:.cpp=.o)))
+INCLUDES = -I.src/
+
+SRC_FILES = $(wildcard src/*.c) $(wildcard src/gen/*.c) $(wildcard src/common/*.c)
+OBJ_FILES = $(addprefix bin/,$(notdir $(SRC_FILES:.c=.o)))
 DEP_FILES = $(OBJ_FILES:.o=.d)
 
-BIN = casoc
+BIN = ./bin/casoc
 
-./bin/$(BIN): $(OBJ_FILES)
-	g++ $^ -o $@
+ifneq "$(findstring prf, $(MAKECMDGOALS))" ""
+CC_FLAGS = -Wall -O3 -pg
+LN_FLAGS = -pg
+endif
+
+ifneq "$(findstring opt, $(MAKECMDGOALS))" ""
+CC_FLAGS = -Wall -O3
+LN_FLAGS =
+endif
+
+all: $(BIN)
+prf: $(BIN)
+opt: $(BIN)
+
+$(BIN): $(OBJ_FILES)
+	$(CC) $(LN_FLAGS) $^ -o $@
 
 -include $(DEP_FILES)
 
-bin/%.o: src/%.cpp
-	g++ $(BUILDFLAGS) $(INCLUDES) -MMD -c $< -o $@
+bin/%.o: src/%.c
+	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
+
+bin/%.o: src/gen/%.c
+	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
+
+bin/%.o: src/common/%.c
+	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
 
 clean:
-	-rm ./bin/$(BIN) $(OBJ_FILES) $(DEP_FILES)
+	-rm $(BIN) $(OBJ_FILES) $(DEP_FILES)

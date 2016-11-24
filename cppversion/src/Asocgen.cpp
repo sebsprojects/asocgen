@@ -8,12 +8,9 @@
 
 
 bool doStep(std::vector<int>* mtab, Zip* zip, Info* info) {
-  //std::cout << "last entry: " << zip->lastEntry << std::endl;
-  //std::cout << std::endl;
-
   if(zip->isOverEnd()) {
-    printMTab(zip->n, mtab);
-    std::cout << std::endl;
+    //printMTab(zip->n, mtab);
+    //std::cout << std::endl;
     info->num_groups++;
     zip->pos--;
   }
@@ -28,12 +25,7 @@ bool doStep(std::vector<int>* mtab, Zip* zip, Info* info) {
     if(zip->pos > zip->lastEntry) {
       zip->pos--;
     }
-    //std::cout << "Not asoc!" << std::endl;
-    //printMTab(mtab);
-    //std::cout << std::endl;
   }
-  //printMTab(mtab);
-  //std::cout << std::endl;
   return true;
 }
 

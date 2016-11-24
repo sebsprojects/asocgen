@@ -5,3 +5,4 @@ cversion/bin
 
 .stack-work
 *.prof
+*.out
