@@ -3,31 +3,30 @@
 #include <string.h>
 
 #include "gen/asocgen.h"
+#include "group/group_common.h"
 
 
 int main() {
-  uint8_t n = 8;
-  Zip zipv = allocZip(n);
-  Info infov; infov.numGroups = 0;
-  Info *info = &infov;
-  Zip *zip = &zipv;
+  uint8_t n = 6;
+  Zip *zip = allocZip(n);
   MTab *mtab = allocArray_uint8(n * n);
   char *pstring = malloc(6 * mtab->size + 10);
 
   initMTab(mtab, zip, 0);
   initIOrd(zip);
 
-  //printMTab(pstring, mtab, n);
-  //printZip(zip);
-  //printIOrd(pstring, zip);
+  Group *group = allocGroup(n);
+  createCn(group);
+  printGroup(group);
+  freeGroup(group);
 
+  /*
   bool notDone = 1;
   while(notDone) {
-    //printMTab(pstring, mtab, n);
-    notDone = doStep(mtab, zip, info);
+    notDone = doStep(mtab, zip);
   }
-
-  printf("Total Number of Groups: %u\n", info->numGroups);
+  printf("Total Number of Groups: %u\n", zip->numGroups);
+  */
 
   free(pstring);
   freeArray_uint8(mtab);

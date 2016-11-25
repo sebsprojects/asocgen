@@ -1,20 +1,23 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "asocgen.h"
 
 
-Zip allocZip(uint8_t n) {
-  Zip zip;
-  zip.n = n;
-  zip.pos = 1;
-  zip.lastEntry = 0;
-  zip.iord = allocArray_uint8((n - 1) * (n - 1));
-  zip.candidates = allocArray_uint8(n);
+Zip *allocZip(uint8_t n) {
+  Zip *zip = malloc(sizeof(Zip));
+  zip->n = n;
+  zip->pos = 1;
+  zip->lastEntry = 0;
+  zip->iord = allocArray_uint8((n - 1) * (n - 1));
+  zip->candidates = allocArray_uint8(n);
+  zip->numGroups = 0;
   return zip;
 }
 
 void freeZip(Zip *zip) {
   freeArray_uint8(zip->iord);
   freeArray_uint8(zip->candidates);
+  free(zip);
 }
 
 uint8_t getMTabIndexAtPos(Zip *zip) {
@@ -33,10 +36,10 @@ bool isOverStart(Zip *zip) {
   return zip->pos < 0;
 }
 
-bool doStep(MTab *mtab, Zip* zip, Info* info) {
+bool doStep(MTab *mtab, Zip* zip) {
   if(isOverEnd(zip)) {
     //printMTab(zip->n, mtab);
-    info->numGroups++;
+    zip->numGroups++;
     zip->pos--;
   }
 
@@ -123,13 +126,13 @@ bool isAsocIncmplNaive(MTab *mtab, Zip* zip) {
   for(a = 0; a < n; a++) {
     for(b = 0; b < n; b++) {
       for(c = 0; c < n; c++) {
-	ab = *at_uint8(mtab, getMTabIndex(n, a, b));
+	ab = *at_uint8(mtab, get2DIndex(n, a, b));
 	if(ab == 0xff) continue;
-	bc = *at_uint8(mtab, getMTabIndex(n, b, c));
+	bc = *at_uint8(mtab, get2DIndex(n, b, c));
 	if(bc == 0xff) continue;
-	ab_c = *at_uint8(mtab, getMTabIndex(n, ab, c));
+	ab_c = *at_uint8(mtab, get2DIndex(n, ab, c));
 	if(ab_c == 0xff) continue;
-	a_bc = *at_uint8(mtab, getMTabIndex(n, a, bc));
+	a_bc = *at_uint8(mtab, get2DIndex(n, a, bc));
 	if(a_bc == 0xff) continue;
 	if(ab_c != a_bc) return 0;
       }
@@ -148,11 +151,11 @@ bool isAsocIncmplIncrm(MTab *mtab, Zip* zip) {
   // check ab_c = a_bc
   uint8_t c, bc, ab_c, a_bc;
   for(c = 0; c < n; c++) {
-    bc = *at_uint8(mtab, getMTabIndex(n, b, c));
+    bc = *at_uint8(mtab, get2DIndex(n, b, c));
     if(bc == 0xff) continue;
-    a_bc = *at_uint8(mtab, getMTabIndex(n, a, bc));
+    a_bc = *at_uint8(mtab, get2DIndex(n, a, bc));
     if(a_bc == 0xff) continue;
-    ab_c = *at_uint8(mtab, getMTabIndex(n, ab, c));
+    ab_c = *at_uint8(mtab, get2DIndex(n, ab, c));
     if(ab_c == 0xff) continue;
     if(ab_c != a_bc) return 0;
   }
@@ -160,11 +163,11 @@ bool isAsocIncmplIncrm(MTab *mtab, Zip* zip) {
   // check c_ab = ca_b
   uint8_t ca, c_ab, ca_b;
   for(c = 0; c < n; c++) {
-    ca = *at_uint8(mtab, getMTabIndex(n, c, a));
+    ca = *at_uint8(mtab, get2DIndex(n, c, a));
     if(ca == 0xff) continue;
-    ca_b = *at_uint8(mtab, getMTabIndex(n, ca, b));
+    ca_b = *at_uint8(mtab, get2DIndex(n, ca, b));
     if(ca_b == 0xff) continue;
-    c_ab = *at_uint8(mtab, getMTabIndex(n, c, ab));
+    c_ab = *at_uint8(mtab, get2DIndex(n, c, ab));
     if(c_ab == 0xff) continue;
     if(ca_b != c_ab) return 0;
   }
@@ -177,9 +180,9 @@ bool isAsocIncmplIncrm(MTab *mtab, Zip* zip) {
     if(ele == a) {
       x = getRowIndex(n, i);
       y = getColIndex(n, i);
-      yb = *at_uint8(mtab, getMTabIndex(n, y, b));
+      yb = *at_uint8(mtab, get2DIndex(n, y, b));
       if(yb == 0xff) continue;
-      x_yb = *at_uint8(mtab, getMTabIndex(n, x, yb));
+      x_yb = *at_uint8(mtab, get2DIndex(n, x, yb));
       if(x_yb == 0xff) continue;
       if(x_yb != ab) return 0;
     }
@@ -192,9 +195,9 @@ bool isAsocIncmplIncrm(MTab *mtab, Zip* zip) {
     if(ele == b) {
       x = getRowIndex(n, i);
       y = getColIndex(n, i);
-      ax = *at_uint8(mtab, getMTabIndex(n, a, x));
+      ax = *at_uint8(mtab, get2DIndex(n, a, x));
       if(ax == 0xff) continue;
-      ax_y = *at_uint8(mtab, getMTabIndex(n, ax, y));
+      ax_y = *at_uint8(mtab, get2DIndex(n, ax, y));
       if(ax_y == 0xff) continue;
       if(ax_y != ab) return 0;
     }

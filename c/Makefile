@@ -4,7 +4,7 @@ LN_FLAGS =
 
 INCLUDES = -I.src/
 
-SRC_FILES = $(wildcard src/*.c) $(wildcard src/gen/*.c) $(wildcard src/common/*.c)
+SRC_FILES = $(wildcard src/*.c) $(wildcard src/gen/*.c) $(wildcard src/common/*.c) $(wildcard src/group/*.c)
 OBJ_FILES = $(addprefix bin/,$(notdir $(SRC_FILES:.c=.o)))
 DEP_FILES = $(OBJ_FILES:.o=.d)
 
@@ -16,7 +16,7 @@ LN_FLAGS = -pg
 endif
 
 ifneq "$(findstring opt, $(MAKECMDGOALS))" ""
-CC_FLAGS = -Wall -O3
+CC_FLAGS = -Wall -O3 -DSTRUCT_HACK
 LN_FLAGS =
 endif
 
@@ -36,6 +36,9 @@ bin/%.o: src/gen/%.c
 	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
 
 bin/%.o: src/common/%.c
+	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
+
+bin/%.o: src/group/%.c
 	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
 
 clean:
