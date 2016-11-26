@@ -17,6 +17,7 @@ void sprintArray_uint16(char *string, Array_uint16 *arr); // *6 + 10
 void sprintArraySquare_uint8(char *string, Array_uint8 *arr, uint32_t sq);
 void sprintArraySquare_uint16(char *string, Array_uint16 *arr, uint32_t sq);
 
+void printError(char *error);
 
 inline uint8_t getRowIndex(uint32_t n, uint32_t ind) {
   return ind / n;

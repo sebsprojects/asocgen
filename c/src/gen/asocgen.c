@@ -10,7 +10,6 @@ Zip *allocZip(uint8_t n) {
   zip->lastEntry = 0;
   zip->iord = allocArray_uint8((n - 1) * (n - 1));
   zip->candidates = allocArray_uint8(n);
-  zip->numGroups = 0;
   return zip;
 }
 
@@ -37,14 +36,8 @@ bool isOverStart(Zip *zip) {
 }
 
 bool doStep(MTab *mtab, Zip* zip) {
-  if(isOverEnd(zip)) {
-    //printMTab(zip->n, mtab);
-    zip->numGroups++;
-    zip->pos--;
-  }
-
+  if(isOverEnd(zip)) zip->pos--;
   if(!upEntry(mtab, zip)) return 0;
-
   if(!isAsocIncmplIncrm(mtab, zip)) {
     if(zip->pos > zip->lastEntry) {
       zip->pos--;
@@ -248,7 +241,7 @@ void initMTab(MTab* mtab, Zip *zip, uint8_t init) {
 
 void printMTab(char *pstring, MTab *mtab, uint8_t n) {
   sprintArraySquare_uint8(pstring, mtab, n);
-  printf("%s", pstring);
+  printf("%s\n", pstring);
 }
 
 void printZip(Zip *zip) {
@@ -258,4 +251,8 @@ void printZip(Zip *zip) {
 void printIOrd(char *pstring, Zip *zip) {
   sprintArray_uint8(pstring, zip->iord);
   printf("%s", pstring);
+}
+
+bool isComplete(MTab *mtab, uint8_t n) {
+  return *at_uint8(mtab, n * 2 - 1) != 0xff;
 }

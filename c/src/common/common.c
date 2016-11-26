@@ -87,3 +87,7 @@ void printArray_uint16(char *string, Array_uint16 *arr) {
   sprintArray_uint16(string, arr);
   printf(string);
 }
+
+void printError(char *error) {
+  fprintf(stderr, "%s", error);
+}

@@ -1,7 +1,7 @@
 #include "group_common.h"
 
-void createCn(Group *group) {
-  uint16_t n = order(group);
+Group *createCn(uint32_t n) {
+  Group *group = allocGroup(n);
   uint32_t i, j;
   for(i = 0; i < n; i++) {
     *at_uint16(group->set, i) = i;
@@ -16,4 +16,20 @@ void createCn(Group *group) {
       *at_uint16(group->mtab, i * n + j) = (i + j) % n;
     }
   }
+  return group;
+}
+
+Group *createFromGen(uint32_t n, Array_uint8 *mtab) {
+  Group *group = allocGroup(n);
+  uint32_t i;
+  for(i = 0; i < n; i++) {
+    *at_uint16(group->set, i) = i;
+  }
+  for(i = 0; i < n * n; i++) {
+    *at_uint16(group->mtab, i) = *at_uint8(mtab, i);
+  }
+  for(i = 0; i < n; i++) {
+    *at_uint16(group->invs, i) = compInv(group, i);
+  }
+  return group;
 }

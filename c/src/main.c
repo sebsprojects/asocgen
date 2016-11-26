@@ -15,19 +15,23 @@ int main() {
   initMTab(mtab, zip, 0);
   initIOrd(zip);
 
-  Group *group = allocGroup(n);
-  createCn(group);
-  printGroup(group);
-  freeGroup(group);
-
-  /*
+  Group *group = 0;
   bool notDone = 1;
   while(notDone) {
     notDone = doStep(mtab, zip);
+    if(isComplete(mtab, n)) {
+      group = createFromGen(n, mtab);
+      break;
+    }
   }
-  printf("Total Number of Groups: %u\n", zip->numGroups);
-  */
 
+  printGroup(group);
+  uint32_t i;
+  for(i = 0; i < n; i++) {
+    printf("Order of %u = %u\n", i, elementOrder(group, i));
+  }
+
+  freeGroup(group);
   free(pstring);
   freeArray_uint8(mtab);
   freeZip(zip);
