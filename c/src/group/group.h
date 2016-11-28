@@ -4,41 +4,50 @@
 #include "../common/common.h"
 
 
-/*
-  Groups of the following form:
-     set:  { 0, ... , n } in this order
-     invs: { inv(0), ... , inv(n) } in this order
-     mtab: Multiplication table using the order of set
-
-     0 is always the neutral element
- */
-
 struct Group {
+  bool indexed;
   Array_uint16 *set;
-  Array_uint16 *invs;
   Array_uint16 *mtab;
+  Array_uint16 *invs;
+  Map_uint16 *imap;
 };
 typedef struct Group Group;
+
 
 bool isCommutative(Group *group);
 bool isCyclic(Group *group);
 uint16_t elementOrder(Group *group, uint16_t ele);
-
-Array_uint16 generateFrom(Group *group, Array_uint16 set);
-Array_uint16 minimalGeneratingSet(Group *group);
-
 uint16_t compInv(Group *group, uint16_t ele);
+
+void setInvs(Group *group);
 
 inline uint16_t order(Group *group) {
   return group->set->size;
 }
 
 inline uint16_t inv(Group *group, uint16_t ele) {
+  if(!group->indexed) {
+    ele = mapFrom_uint16(group->imap, ele);
+  }
   return *at_uint16(group->invs, ele);
 }
 
-inline uint16_t gop(Group *group, uint16_t a, uint16_t b) {
-  return *at_uint16(group->mtab, get2DIndex(order(group), a, b));
+// index * index -> index
+inline uint16_t gopi(Group *group, uint16_t i, uint16_t j) {
+  uint16_t ele = *at_uint16(group->mtab, get2DIndex(order(group), i, j));
+  if(!group->indexed) {
+    return mapFrom_uint16(group->imap, ele);
+  }
+  return ele;
+}
+
+// ele * ele -> ele
+inline uint16_t gop(Group *group, uint16_t i, uint16_t j) {
+  if(!group->indexed) {
+    i = mapFrom_uint16(group->imap, i);
+    j = mapFrom_uint16(group->imap, j);
+  }
+  return *at_uint16(group->mtab, get2DIndex(order(group), i, j));
 }
 
 Group *allocGroup(uint16_t order);

@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "sarray.h"
+#include "smap.h"
 
 
 typedef int32_t bool;

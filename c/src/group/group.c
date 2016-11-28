@@ -30,18 +30,18 @@ uint16_t elementOrder(Group *group, uint16_t ele) {
   while(r != 0) {
     r = gop(group, r, ele);
     ord++;
-    #ifdef BOUNDS_CHECK
+#ifdef BOUNDS_CHECK
     if(ord > order(group)) {
       printError("error: element order not finite!");
       exit(1);
     }
-    #endif
+#endif
   }
   return ord;
 }
 
 uint16_t compInv(Group *group, uint16_t ele) {
-  uint32_t i;
+  uint16_t i;
   uint16_t n = order(group);
   for(i = 0; i < n; i++) {
     if(gop(group, ele, i) == 0) return i;
@@ -49,17 +49,33 @@ uint16_t compInv(Group *group, uint16_t ele) {
   return 0xffff;
 }
 
+void setInvs(Group *group) {
+  uint16_t i, j;
+  uint16_t n = order(group);
+  for(i = 0; i < n; i++) {
+    for(j = 0; j < n; j++) {
+      if(gopi(group, i, j) == 0) {
+        *at_uint16(group->invs, i) = *mapTo_uint16(group->imap, j);
+        break;
+      }
+    }
+  }
+}
+
 Group *allocGroup(uint16_t order) {
   Group *group = malloc(sizeof(Group));
+  group->indexed = 1;
   group->set = allocArray_uint16(order);
-  group->invs = allocArray_uint16(order);
   group->mtab = allocArray_uint16(order * order);
+  group->invs = allocArray_uint16(order);
+  group->imap = allocMapId_uint16(order);
   return group;
 }
 
 void freeGroup(Group *group) {
-  freeArray_uint16(group->mtab);
+  freeMap_uint16(group->imap);
   freeArray_uint16(group->invs);
+  freeArray_uint16(group->mtab);
   freeArray_uint16(group->set);
   free(group);
 }
@@ -71,6 +87,7 @@ bool isValid(Group *group) {
   return 1;
 }
 
+// Checks the if the first row is identical to set
 bool hasNeutral(Group *group) {
   uint32_t i;
   for(i = 0; i < order(group); i++) {
@@ -79,14 +96,14 @@ bool hasNeutral(Group *group) {
   return 1;
 }
 
+// Checks if forall a: aa^-1 = 0
 bool hasInvs(Group *group) {
   uint32_t n = order(group);
   uint32_t i;
-  uint16_t a, b;
+  uint16_t ele;
   for(i = 0; i < n; i++) {
-    a = *at_uint16(group->set, i);
-    b = *at_uint16(group->invs, i);
-    if(gop(group, a, b) != 0) return 0;
+    ele = *at_uint16(group->set, i);
+    if(gop(group, ele, inv(group, ele)) != 0) return 0;
   }
   return 1;
 }
@@ -97,10 +114,10 @@ bool isAsoc(Group *group) {
   for(a = 0; a < n; a++) {
     for(b = 0; b < n; b++) {
       for(c = 0; c < n; c++) {
-	ab = gop(group, a, b);
-	bc = gop(group, b, c);
-        ab_c = gop(group, ab, c);
-	a_bc = gop(group, a, bc);
+	ab = gopi(group, a, b);
+	bc = gopi(group, b, c);
+        ab_c = gopi(group, ab, c);
+	a_bc = gopi(group, a, bc);
 	if(ab_c != a_bc) return 0;
       }
     }
@@ -111,7 +128,6 @@ bool isAsoc(Group *group) {
 void printGroup(Group *group) {
   uint32_t n = order(group);
   char *pstring = malloc(n * n * 6 + n * 6 * 2 + 100); // just a guess
-  sprintArray_uint16(pstring, group->set);
   char *valid;
   if(isValid(group)) valid = "valid";
   else valid = "INVALID";
