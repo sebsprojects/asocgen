@@ -4,5 +4,6 @@
 #include "group.h"
 #include "group_gen.h"
 #include "group_common.h"
+#include "subgroup.h"
 
 #endif

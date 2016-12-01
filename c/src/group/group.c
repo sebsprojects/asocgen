@@ -9,7 +9,7 @@ bool isCommutative(Group *group) {
   uint16_t n = order(group);
   for(i = 0; i < n; i++) {
     for(j = 0; j < n; j++) {
-      if(gop(group, i, j) != gop(group, j, i)) return 0;
+      if(gopi(group, i, j) != gopi(group, j, i)) return 0;
     }
   }
   return 1;
@@ -19,7 +19,7 @@ bool isCyclic(Group *group) {
   uint32_t i;
   uint16_t n = order(group);
   for(i = 0; i < n; i++) {
-    if(elementOrder(group, i) == n) return 1;
+    if(elementOrder(group, *at_uint16(group->set, i)) == n) return 1;
   }
   return 0;
 }
@@ -40,13 +40,20 @@ uint16_t elementOrder(Group *group, uint16_t ele) {
   return ord;
 }
 
-uint16_t compInv(Group *group, uint16_t ele) {
-  uint16_t i;
-  uint16_t n = order(group);
-  for(i = 0; i < n; i++) {
-    if(gop(group, ele, i) == 0) return i;
+uint16_t elementOrderi(Group *group, uint16_t ind) {
+  uint16_t r = ind;
+  uint16_t ord = 1;
+  while(r != 0) {
+    r = gopi(group, r, ind);
+    ord++;
+#ifdef BOUNDS_CHECK
+    if(ord > order(group)) {
+      printError("error: element order not finite!");
+      exit(1);
+    }
+#endif
   }
-  return 0xffff;
+  return ord;
 }
 
 void setInvs(Group *group) {
@@ -55,7 +62,7 @@ void setInvs(Group *group) {
   for(i = 0; i < n; i++) {
     for(j = 0; j < n; j++) {
       if(gopi(group, i, j) == 0) {
-        *at_uint16(group->invs, i) = *mapTo_uint16(group->imap, j);
+        *at_uint16(group->invs, i) = *at_uint16(group->set, j);
         break;
       }
     }
@@ -68,12 +75,10 @@ Group *allocGroup(uint16_t order) {
   group->set = allocArray_uint16(order);
   group->mtab = allocArray_uint16(order * order);
   group->invs = allocArray_uint16(order);
-  group->imap = allocMapId_uint16(order);
   return group;
 }
 
 void freeGroup(Group *group) {
-  freeMap_uint16(group->imap);
   freeArray_uint16(group->invs);
   freeArray_uint16(group->mtab);
   freeArray_uint16(group->set);

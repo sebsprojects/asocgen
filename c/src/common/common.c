@@ -91,3 +91,31 @@ void printArray_uint16(char *string, Array_uint16 *arr) {
 void printError(char *error) {
   fprintf(stderr, "%s", error);
 }
+
+void sprintBinary_uint8(char *pstring, uint8_t n) {
+  uint32_t i;
+  for(i = 0; i < 16; i++) {
+    if((n & (1 << (15 - i))) == 0) {
+      pstring[i] = '0';
+    } else {
+      pstring[i] = '1';
+    }
+  }
+}
+
+void sprintBitfield(char *pstring, Bitfield *bf) {
+  pstring[bf->bitCount] = '\0';
+  uint32_t i;
+  for(i = 0; i < bf->bitCount; i++) {
+    if(testBit(bf, i) == 0) {
+      pstring[bf->bitCount - i - 1] = '0';
+    } else {
+      pstring[bf->bitCount - i - 1] = '1';
+    }
+  }
+}
+
+void printBitfield(char *pstring, Bitfield *bf) {
+  sprintBitfield(pstring, bf);
+  printf("%s\n", pstring);
+}

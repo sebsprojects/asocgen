@@ -15,9 +15,21 @@ Array_uint8 *allocArray_uint8(uint32_t size) {
 }
 
 Array_uint16 *allocArray_uint16(uint32_t size) {
-  Array_uint16 *array = malloc(sizeof(Array_uint16) + size * sizeof(uint16_t));
+  Array_uint16 *array = malloc(sizeof(Array_uint16) + size *
+                               sizeof(uint16_t));
+#ifdef BOUNDS_CHECK
+  array->_allocSize = size;
+#endif
   array->size = size;
   array->data = (uint16_t*) array + sizeof(Array_uint16);
+  return array;
+}
+
+Array_uint16 *allocArray_uint64(uint32_t size) {
+  Array_uint64 *array = malloc(sizeof(Array_uint64) + size *
+                               sizeof(uint64_t));
+  array->size = size;
+  array->data = (uint64_t*) array + sizeof(Array_uint64);
   return array;
 }
 
@@ -44,8 +56,18 @@ Array_uint8 *allocArray_uint8(uint32_t size) {
 
 Array_uint16 *allocArray_uint16(uint32_t size) {
   Array_uint16 *array = malloc(sizeof(Array_uint16));
+#ifdef BOUNDS_CHECK
+  array->_allocSize = size;
+#endif
   array->size = size;
   array->data = malloc(size * sizeof(uint16_t));
+  return array;
+}
+
+Array_uint64 *allocArray_uint64(uint32_t size) {
+  Array_uint64 *array = malloc(sizeof(Array_uint64));
+  array->size = size;
+  array->data = malloc(size * sizeof(uint64_t));
   return array;
 }
 
@@ -59,13 +81,18 @@ void freeArray_uint16(Array_uint16 *array) {
   free(array);
 }
 
+void freeArray_uint64(Array_uint64 *array) {
+  free(array->data);
+  free(array);
+}
+
 #endif
 
-void shrink_uint8(Array_uint8 *array, uint32_t newSize) {
+void grow_uint16(Array_uint16 *array, uint32_t newSize) {
 #ifdef BOUNDS_CHECK
-  if(array->size < newSize) {
-    fprintf(stderr, "error: Array_uint8 shrink: size=%u, newsize=%u \n",
-	    array->size, newSize);
+  if(array->size > array->_allocSize) {
+    fprintf(stderr, "error: Array_uint16 grow: allocsize=%u, newsize=%u \n",
+	    array->_allocSize, newSize);
     exit(1);
   }
 #endif
