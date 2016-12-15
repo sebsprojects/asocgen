@@ -1,5 +1,18 @@
 #include "group_common.h"
 
+Group *createFromGen(uint32_t n, Array_uint8 *mtab) {
+  Group *group = allocGroup(n);
+  uint32_t i;
+  for(i = 0; i < n; i++) {
+    *at_uint16(group->set, i) = i;
+  }
+  for(i = 0; i < n * n; i++) {
+    *at_uint16(group->mtab, i) = *at_uint8(mtab, i);
+  }
+  setInvs(group);
+  return group;
+}
+
 Group *createCn(uint32_t n) {
   Group *group = allocGroup(n);
   uint32_t i, j;
@@ -14,15 +27,12 @@ Group *createCn(uint32_t n) {
   return group;
 }
 
-Group *createFromGen(uint32_t n, Array_uint8 *mtab) {
-  Group *group = allocGroup(n);
-  uint32_t i;
-  for(i = 0; i < n; i++) {
-    *at_uint16(group->set, i) = i;
+Group *createSn(uint8_t n) {
+#ifdef BOUNDS_CHECK
+  if(n > 8) {
+    printError("error: can only create Sn up to n >= 10");
+    exit(1);
   }
-  for(i = 0; i < n * n; i++) {
-    *at_uint16(group->mtab, i) = *at_uint8(mtab, i);
-  }
-  setInvs(group);
-  return group;
+#endif
+  return 0;
 }

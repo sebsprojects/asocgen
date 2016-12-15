@@ -54,7 +54,7 @@ inline uint16_t order(Group *group) {
 
 inline uint16_t inv(Group *group, uint16_t ele) {
   if(!group->indexed) {
-    ele = mapFrom_uint16(group->set, ele);
+    ele = indexof_uint16(group->set, ele);
   }
   return *at_uint16(group->invs, ele);
 }
@@ -67,7 +67,7 @@ inline uint16_t invi(Group *group, uint16_t ind) {
 inline uint16_t gopi(Group *group, uint16_t i, uint16_t j) {
   uint16_t ele = *at_uint16(group->mtab, get2DIndex(order(group), i, j));
   if(!group->indexed) {
-    return mapFrom_uint16(group->set, ele);
+    return indexof_uint16(group->set, ele);
   }
   return ele;
 }
@@ -75,8 +75,8 @@ inline uint16_t gopi(Group *group, uint16_t i, uint16_t j) {
 // ele * ele -> ele
 inline uint16_t gop(Group *group, uint16_t i, uint16_t j) {
   if(!group->indexed) {
-    i = mapFrom_uint16(group->set, i);
-    j = mapFrom_uint16(group->set, j);
+    i = indexof_uint16(group->set, i);
+    j = indexof_uint16(group->set, j);
   }
   return *at_uint16(group->mtab, get2DIndex(order(group), i, j));
 }

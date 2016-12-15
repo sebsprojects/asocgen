@@ -7,7 +7,7 @@
 
 
 int main() {
-  uint8_t n = 8;
+  uint8_t n = 9;
   Zip *zip = allocZip(n);
   MTab *mtab = allocArray_uint8(n * n);
   char *pstring = malloc(6 * mtab->size + 10);
@@ -37,9 +37,28 @@ int main() {
   printArray_uint16(pstring, group->invs);
   printArray_uint16(pstring, subgroup->set);
   // ---------------------------------------
-  Array_uint16 *minGen = minGeneratingSet_alloc(group);
-
-  freeArray_uint16(minGen);
+  printf("-----------------\n");
+  Array_uint16 *perm = allocArray_uint16(n);
+  Array_uint16 *util1 = allocArray_uint16(n);
+  Array_uint16 *util2 = allocArray_uint16(n);
+  Array_uint16 *res = allocArray_uint16(n);
+  initPerm(perm, 1);
+  bool permPossible = 1;
+  while(permPossible) {
+    permPossible = minGeneratingSet_noalloc(group, res, perm, util1, util2);
+    //printf("Set i = %u\n", i);
+    //printArray_uint16(pstring, res);
+    printf("perm = %u  ", permPossible);
+    printArray_uint16(pstring, perm);
+  }
+  freeArray_uint16(util1);
+  freeArray_uint16(util2);
+  freeArray_uint16(res);
+  initPerm(perm, 8);
+  bool a = shiftPerm(perm, 7);
+  printf("A = %u\n", a);
+  freeArray_uint16(perm);
+  // ---------------------------------------
   freeGroup(subgroup);
   freeArray_uint16(set);
   freeGroup(group);

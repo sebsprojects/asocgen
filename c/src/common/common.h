@@ -5,7 +5,6 @@
 
 #include "sarray.h"
 #include "sbimap.h"
-#include "smap.h"
 #include "sbitfield.h"
 
 

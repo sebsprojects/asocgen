@@ -89,4 +89,13 @@ inline void fillArray_uint16(Array_uint16 *array, uint16_t val) {
   }
 }
 
+// For now: stupid linear search, no error on fail
+inline uint16_t indexof_uint16(Array_uint16 *array, uint16_t ele) {
+  uint32_t i;
+  for(i = 0; i < array->size; i++) {
+    if(*at_uint16(array, i) == ele) return i;
+  }
+  return 0xffff;
+}
+
 #endif

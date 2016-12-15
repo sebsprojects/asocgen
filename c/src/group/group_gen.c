@@ -2,19 +2,20 @@
 
 
 /*
+  input res and util can have abitrary content
+
   util contains indices in random order, filled from the start
   res  contains elements stored at their index, rest is 0xfffff
 
   while number of ele in res has changed:
-      compute all possible products
-      store new element(s) in res, new indice(s) in util
+    compute all possible products
+    store new element(s) in res, new indice(s) in util
 
-  returns res unmodified
  */
 void generateFrom_noalloc(Group *group,
-                          Array_uint16 *set,   // set to generate from
-                          Array_uint16 *res,   // result
-                          Array_uint16 *util)  // incremental fill
+                          Array_uint16 *set,    // set to generate from
+                          Array_uint16 *res,    // result
+                          Array_uint16 *util)   // incremental fill
 {
   uint32_t n = order(group);
   bool commutative = isCommutative(group);
@@ -33,7 +34,7 @@ void generateFrom_noalloc(Group *group,
     ele = *at_uint16(set, i);
     if(ele == 0xffff) break;    // accept 0xffff as stop marker
     filled++;
-    ind = mapFrom_uint16(group->set, ele);
+    ind = indexof_uint16(group->set, ele);
     *at_uint16(res, ind) = ele; // set res[index(ele)] = ele
     *at_uint16(util, i) = ind;  // set utl[i] = ele
   }
@@ -83,15 +84,15 @@ void truncGeneratedSet(Group *group, Array_uint16 *res, bool shrink) {
   uint16_t last = 0;
   for(i = 0; i < n; i++) {
     a = at_uint16(res, i);
-    if(*a != 0xffff) {
+    if(*a != 0xffff) { // if element is not 0xffff nothing is to be done
       last = i;
       continue;
     }
-    for(j = i + 1; j < n; j++) {
+    for(j = i + 1; j < n; j++) { // find the next element != to 0xffff
       b = at_uint16(res, j);
       if(*b == 0xffff) {
         continue;
-      } else {
+      } else { // found one, set a to b and clear b
         *a = *b;
         *b = 0xffff;
         last = i;
@@ -102,6 +103,9 @@ void truncGeneratedSet(Group *group, Array_uint16 *res, bool shrink) {
   if(shrink) shrink_uint16(res, last + 1);
 }
 
+/*
+  Checks if 0xffff is not contained in the array
+ */
 inline bool isComplete(Array_uint16 *set) {
   int32_t i;
   for(i = set->size - 1; i >= 0; i--) {
@@ -110,6 +114,9 @@ inline bool isComplete(Array_uint16 *set) {
   return 1;
 }
 
+/*
+  Set indices in set according to the permutation supplied
+ */
 inline void initFromPerm(Group *group, Array_uint16 *perm, Array_uint16 *set,
                          uint32_t pn) {
   uint32_t i;
@@ -118,12 +125,12 @@ inline void initFromPerm(Group *group, Array_uint16 *perm, Array_uint16 *set,
   }
 }
 
-void minGeneratingSet_n(Group *group,
-                        Array_uint16 *res,
-                        Array_uint16 *perm,
-                        Array_uint16 *util1,
-                        Array_uint16 *util2,
-                        uint32_t pn)
+bool generatingSet(Group *group,
+                   Array_uint16 *res,
+                   Array_uint16 *perm,
+                   Array_uint16 *util1,
+                   Array_uint16 *util2,
+                   uint32_t pn)
 {
   uint32_t n = order(group);
 #ifdef BOUNDS_CHECK
@@ -133,21 +140,22 @@ void minGeneratingSet_n(Group *group,
     exit(1);
   }
 #endif
-  fillArray_uint16(res, 0xffff); // prep set
+  fillArray_uint16(res, 0xffff); // prep set to generate from
   bool compl = 0;
-  bool done = 0;
-  while(!compl && !done) {
+  bool permPossible = 1;
+  while(!compl && permPossible) {
     initFromPerm(group, perm, res, pn);
     generateFrom_noalloc(group, res, util1, util2);
-    done = !shiftPerm(perm, n - 1);
+    permPossible = shiftPerm(perm, n - 1);
     compl = isComplete(util1);
   }
   if(!compl) {
     fillArray_uint16(res, 0xffff);
   }
+  return permPossible;
 }
 
-void minGeneratingSet_noalloc(Group *group,
+bool minGeneratingSet_noalloc(Group *group,
                               Array_uint16 *res,
                               Array_uint16 *perm,
                               Array_uint16 *util1,
@@ -155,21 +163,25 @@ void minGeneratingSet_noalloc(Group *group,
 {
   uint32_t i;
   uint32_t n = order(group);
-  uint32_t pn = 0; // pn-subsets as start
+  uint32_t pn = 0; // pn-subsets as start, determined in the following
   for(i = 0; i < n; i++) {
-    if(*at_uint16(perm, i) == 0xffff) {
-      pn = i;
-      break;
+    if(*at_uint16(perm, i) != 0xffff) pn++;
+  }
+  bool permPossible = 1;
+  bool compl = 0;
+  for(i = pn; i <= n; i++) {
+    while(permPossible && !compl) {
+      permPossible = generatingSet(group, res, perm, util1, util2, i);
+      compl = *at_uint16(res, 0) != 0xffff; // 1-ele is always there at ind=0
     }
+    if(!permPossible && i < n) { // go to pn + 1
+      initPerm(perm, i + 1); // initialize the pn + 1 perm
+      permPossible = 1;
+    }
+    if(compl) return permPossible;
   }
-  char pstring[1000];
-  for(i = pn; i < n; i++) {
-    minGeneratingSet_n(group, res, perm, util1, util2, i);
-    if(i < n - 1) initPerm(perm, i + 1);
-    printf("for %u-subsets: ", i);
-    printArray_uint16(pstring, res);
-    if(*at_uint16(res, 0) != 0xffff) break;
-  }
+  if(!compl) fillArray_uint16(res, 0xffff);
+  return permPossible;
 }
 
 Array_uint16 *minGeneratingSet_alloc(Group *group) {
@@ -184,8 +196,11 @@ Array_uint16 *minGeneratingSet_alloc(Group *group) {
   freeArray_uint16(util1);
   freeArray_uint16(util2);
   return res;
-}
+ }
 
+/*
+  Fills, starting with 0: perm[i] = i, ending (including) ind - 1
+ */
 inline void toIdBefore(Array_uint16 *perm, uint16_t ind) {
   uint32_t i;
   for(i = 0; i < ind; i++) {
@@ -193,6 +208,11 @@ inline void toIdBefore(Array_uint16 *perm, uint16_t ind) {
   }
 }
 
+
+/*
+  since the perm can be 0xffff terminated, more complicated cases need to be
+  considered (ie. is t0 end element / is t1 end element)
+*/
 bool shiftPerm(Array_uint16 *perm, uint16_t max) {
   uint32_t i;
   uint16_t *ele_t0;
@@ -201,7 +221,7 @@ bool shiftPerm(Array_uint16 *perm, uint16_t max) {
     ele_t0 = at_uint16(perm, i);
     ele_t1 = at_uint16(perm, i + 1);
 
-    if(*ele_t1 == 0xffff) {
+    if(*ele_t1 == 0xffff) { // t0 is end element, inc t0 if possible
       if(*ele_t0 < max) {
         (*ele_t0)++;
         toIdBefore(perm, i);
@@ -209,11 +229,11 @@ bool shiftPerm(Array_uint16 *perm, uint16_t max) {
       } else {
         return 0;
       }
-    } else if (*ele_t1 - *ele_t0 > 1) { // t0 is at end position
+    } else if (*ele_t1 - *ele_t0 > 1) { // test if case 1 is applicable
       (*ele_t0)++;
       toIdBefore(perm, i);
       return 1;
-    } else if (i == perm->size - 2) { // psbl to inc t0
+    } else if (i == perm->size - 2) { // t1 is end element, inc t1 if possible
       if(*ele_t1 < max) {
         toIdBefore(perm, i + 1);
         (*ele_t1)++;
@@ -228,8 +248,8 @@ bool shiftPerm(Array_uint16 *perm, uint16_t max) {
 
 void initPerm(Array_uint16 *perm, uint16_t n) {
 #ifdef BOUNDS_CHECK
-  if(n >= perm->size) {
-    printError("error: initPerm, n too large for array");
+  if(n > perm->size) {
+    printError("error: initPerm, n too large for array\n");
     exit(1);
   }
 #endif
