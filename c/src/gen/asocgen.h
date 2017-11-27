@@ -2,8 +2,7 @@
 #define ASOCGEN
 
 #include <stdint.h>
-
-#include "../common/common.h"
+#include "../common/common_includes.h"
 
 
 typedef Array_uint8 MTab;

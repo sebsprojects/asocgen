@@ -1,7 +1,7 @@
 #ifndef GROUP
 #define GROUP
 
-#include "../common/common.h"
+#include "../common/common_includes.h"
 
 
 /* Requirements:
@@ -31,7 +31,9 @@ uint16_t elementOrder(Group *group, uint16_t ele);
 uint16_t elementOrderi(Group *group, uint16_t ind);
 
 /* Managing functions */
-Group *allocGroup(uint16_t order);
+
+Group *allocGroup(uint16_t order, bool indexed);
+
 void freeGroup(Group *group);
 void setInvs(Group *group);
 bool isValid(Group *group);
@@ -53,10 +55,11 @@ inline uint16_t order(Group *group) {
 }
 
 inline uint16_t inv(Group *group, uint16_t ele) {
+  uint16_t ind = ele;
   if(!group->indexed) {
-    ele = indexof_uint16(group->set, ele);
+    ind = indexof_uint16(group->set, ele);
   }
-  return *at_uint16(group->invs, ele);
+  return *at_uint16(group->invs, ind);
 }
 
 inline uint16_t invi(Group *group, uint16_t ind) {

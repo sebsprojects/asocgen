@@ -3,6 +3,9 @@
 #include <stdlib.h>
 
 #include "common.h"
+#include "sarray.h"
+#include "sbitfield.h"
+#include "smap.h"
 
 
 void padString(char *string, uint32_t val) {
@@ -118,4 +121,18 @@ void sprintBitfield(char *pstring, Bitfield *bf) {
 void printBitfield(char *pstring, Bitfield *bf) {
   sprintBitfield(pstring, bf);
   printf("%s\n", pstring);
+}
+
+uint32_t factorial(uint32_t n) {
+#ifdef BOUNDS_CHECK
+  if(n > 12) {
+    printError("error: factorial only fits into uint32 for n <= 12");
+    exit(1);
+  }
+#endif
+  if(n == 0) {
+    return 1;
+  } else {
+    return n * factorial(n - 1);
+  }
 }

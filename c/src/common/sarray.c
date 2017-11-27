@@ -1,8 +1,6 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-
 #include "sarray.h"
+
+#include <stdarg.h>
 
 
 #ifdef STRUCT_HACK
@@ -88,6 +86,25 @@ void freeArray_uint64(Array_uint64 *array) {
 
 #endif
 
+
+Array_uint16 *copyArray_uint16(Array_uint16 *array) {
+  Array_uint16 *copy = allocArray_uint16(array->size);
+  memcpy(copy->data, array->data, array->size * sizeof(uint16_t));
+  return copy;
+}
+
+void copyIntoArray_uint16(Array_uint16 *to, Array_uint16* from) {
+#ifdef BOUNDS_CHECK
+  if(to->size < from->size) {
+    fprintf(stderr,
+            "error: Array_uint16 copyIntoArray: from->size=%u, to->size=%u",
+            from->size, to->size);
+    exit(1);
+  }
+#endif
+  memcpy(to->data, from->data, from->size *sizeof(uint16_t));
+}
+
 void grow_uint16(Array_uint16 *array, uint32_t newSize) {
 #ifdef BOUNDS_CHECK
   if(array->size > array->_allocSize) {
@@ -170,4 +187,43 @@ Array_uint16 *allocArray5_uint16(uint16_t e1, uint16_t e2, uint16_t e3,
   array->data[3] = e4;
   array->data[4] = e5;
   return array;
+}
+
+bool areEqualArrays_uint16(Array_uint16 *a, Array_uint16 *b) {
+  if(a->size != b->size) {
+    return 0;
+  }
+  uint32_t i;
+  for(i = 0; i < a->size; i++) {
+    if(a->data[i] != b->data[i]) { // No bounds check needed in any case
+      return 0;
+    }
+  }
+  return 1;
+}
+
+int32_t lessThanCompare_uint16(const void *x, const void *y) {
+  uint16_t xx = *(uint16_t*) x;
+  uint16_t yy = *(uint16_t*) y;
+  if(xx < yy) {
+    return -1;
+  }
+  if(xx > yy) {
+    return 1;
+  }
+  return 0;
+}
+
+void sort_uint16(Array_uint16 *a, uint32_t start, uint32_t end) {
+#ifdef BOUNDS_CHECK
+  if(end >= a->size || start >= a->size) {
+    fprintf(stderr, "error: Array_uint16 sort: size=%u, start=%u, end=%u \n",
+	    a->size, start, end);
+    exit(1);
+  }
+#endif
+  uint16_t *base = &a->data[start];
+  uint32_t num = end - start + 1;
+  uint32_t size = sizeof(uint16_t);
+  qsort(base, num, size, lessThanCompare_uint16);
 }

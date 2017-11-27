@@ -1,7 +1,7 @@
 #include "group_common.h"
 
 Group *createFromGen(uint32_t n, Array_uint8 *mtab) {
-  Group *group = allocGroup(n);
+  Group *group = allocGroup(n, 1);
   uint32_t i;
   for(i = 0; i < n; i++) {
     *at_uint16(group->set, i) = i;
@@ -14,7 +14,7 @@ Group *createFromGen(uint32_t n, Array_uint8 *mtab) {
 }
 
 Group *createCn(uint32_t n) {
-  Group *group = allocGroup(n);
+  Group *group = allocGroup(n, 1);
   uint32_t i, j;
   for(i = 0; i < n; i++) {
     *at_uint16(group->set, i) = i;
@@ -27,12 +27,61 @@ Group *createCn(uint32_t n) {
   return group;
 }
 
-Group *createSn(uint8_t n) {
+Group *createSn(uint32_t n) {
 #ifdef BOUNDS_CHECK
   if(n > 8) {
-    printError("error: can only create Sn up to n >= 10");
+    printError("error: can only create Sn up to n <= 8");
     exit(1);
   }
 #endif
-  return 0;
+  uint32_t nfac =  factorial(n);
+  Array_uint16 *perm = allocArray_uint16(n);
+  Array_uint16 *domain = allocArray_uint16(n);
+  initPerm(perm);
+  initPerm(domain); // not really perm but should be 0 1 2 ... n anyway
+  uint32_t i;
+  Group *group = allocGroup(nfac, 1);
+  for(i = 0; i < nfac; i++) {
+    *at_uint16(group->set, i) = i;
+  }
+  // Alloc
+  Map_uint16 **mapArray = malloc(sizeof(Array_uint16*) * nfac);
+  Array_uint16 *codomain = 0;
+  for(i = 0; i < nfac; i++) {
+    codomain = copyArray_uint16(perm);
+    mapArray[i] =  allocMap_ref_uint16(n, 1, domain, codomain);
+    shiftPerm(perm);
+  }
+  // MTab
+  Map_uint16 *prod = allocMap_uint16(n, 1);
+  uint32_t j, k;
+  for(i = 0; i < nfac; i++) {
+    for(j = 0; j < nfac; j++) {
+      if(i == 0) {
+        *at_uint16(group->mtab, get2DIndex(nfac, i, j)) = j;
+      } else if(j == 0) {
+        *at_uint16(group->mtab, get2DIndex(nfac, i, j)) = i;
+      } else {
+        compMaps_noalloc(mapArray[i], mapArray[j], prod, 1);
+        for(k = 0; k < nfac; k++) {
+          if(areEqualArrays_uint16(mapArray[k]->codomain, prod->codomain)) {
+            *at_uint16(group->mtab, get2DIndex(nfac, i, j)) = k;
+            break;
+          }
+        }
+      }
+    }
+  }
+  setInvs(group);
+
+  // Free
+  freeMap_uint16(prod);
+  for(i = 0; i < nfac; i++) {
+    freeArray_uint16(mapArray[i]->codomain);
+    freeMap_ref_uint16(mapArray[i]);
+  }
+  free(mapArray);
+  freeArray_uint16(domain);
+  freeArray_uint16(perm);
+  return group;
 }

@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include "common.h"
 
 
 struct Array_uint8 {
@@ -46,8 +48,25 @@ void freeArray_uint8(Array_uint8 *array);
 void freeArray_uint16(Array_uint16 *array);
 void freeArray_uint64(Array_uint64 *array);
 
+Array_uint16 *copyArray_uint16(Array_uint16 *array);
+void copyIntoArray_uint16(Array_uint16 *to, Array_uint16* from);
+
 void grow_uint16(Array_uint16 *array, uint32_t newSize);
 void shrink_uint16(Array_uint16 *array, uint32_t newSize);
+
+bool areEqualArrays_uint16(Array_uint16 *a, Array_uint16 *b);
+//bool haveEqualContent_uint16(Array_uint16 *a, Array_uint16 *b);
+
+/*
+ * Sort between array between [start, end]. Uses qsort from stdlib
+ */
+void sort_uint16(Array_uint16 *a, uint32_t start, uint32_t end);
+
+/*
+ *
+ * Inline functions
+ *
+ */
 
 inline uint8_t *at_uint8(Array_uint8 *array, uint32_t index) {
 #ifdef BOUNDS_CHECK

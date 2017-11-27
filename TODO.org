@@ -1,0 +1,24 @@
+#+STARTUP: showall
+
+* Urgent
+
+* Short Term
+
+* Features
+** DONE Group: Implement Sn
+** TODO Group: Implement isomorphism check
+** TODO Group: Get indexed group (isomorphic)
+** TODO General: Devise text format for storing group mtabs (incompl / groups)
+** TODO Asocgen: Multi-threading
+** TODO Asocgen: Start with subgroup / partially filled table
+** TODO Asocgen: Write to progress file
+
+* Housekeeping
+** TODO Make sure changes to setInvs, hasInvs are correct
+** TODO Move Permutation utility out of group/group_gen
+** TODO Check i-j loops for completely <= vs < thing
+** TODO Check uint32 vs uint16 etc. for loops
+
+** TODO Think about index -> element gop / map for performance's sake
+
+* Long Term

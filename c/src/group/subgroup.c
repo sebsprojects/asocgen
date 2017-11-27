@@ -6,8 +6,7 @@ Group *generateSubgroup(Group *group, Array_uint16 *set) {
   Array_uint16 *res = generateFrom_alloc(group, set);
   truncGeneratedSet(group, res, 1);
   uint32_t m = res->size;    // Subgroup order
-  Group *subgroup = allocGroup(m);
-  subgroup->indexed = 0;
+  Group *subgroup = allocGroup(m, 0);
   uint32_t i, j;
   uint16_t a, b;
   for(i = 0; i < m; i++) {

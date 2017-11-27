@@ -9,6 +9,3 @@ turns out C is better for this job).
 * Schemes where we try to keep to number of allowed symbols to a minimum, ie.
   not just increasing with UP but picking from a minimal list of symbols to
   help associativity detection.
-
-# TODO
-* Multithreading

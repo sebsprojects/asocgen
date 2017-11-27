@@ -69,9 +69,9 @@ void setInvs(Group *group) {
   }
 }
 
-Group *allocGroup(uint16_t order) {
+Group *allocGroup(uint16_t order, bool indexed) {
   Group *group = malloc(sizeof(Group));
-  group->indexed = 1;
+  group->indexed = indexed;
   group->set = allocArray_uint16(order);
   group->mtab = allocArray_uint16(order * order);
   group->invs = allocArray_uint16(order);
@@ -105,10 +105,8 @@ bool hasNeutral(Group *group) {
 bool hasInvs(Group *group) {
   uint32_t n = order(group);
   uint32_t i;
-  uint16_t ele;
   for(i = 0; i < n; i++) {
-    ele = *at_uint16(group->set, i);
-    if(gop(group, ele, inv(group, ele)) != 0) return 0;
+    if(gopi(group, i, invi(group, i)) != 0) return 0;
   }
   return 1;
 }

@@ -117,24 +117,24 @@ inline bool isComplete(Array_uint16 *set) {
 /*
   Set indices in set according to the permutation supplied
  */
-inline void initFromPerm(Group *group, Array_uint16 *perm, Array_uint16 *set,
+inline void initFromBinom(Group *group, Array_uint16 *binom,Array_uint16 *set,
                          uint32_t pn) {
   uint32_t i;
   for(i = 0; i < pn; i++) {
-    *at_uint16(set, i) = *at_uint16(group->set, *at_uint16(perm, i));
+    *at_uint16(set, i) = *at_uint16(group->set, *at_uint16(binom, i));
   }
 }
 
 bool generatingSet(Group *group,
                    Array_uint16 *res,
-                   Array_uint16 *perm,
+                   Array_uint16 *binom,
                    Array_uint16 *util1,
                    Array_uint16 *util2,
                    uint32_t pn)
 {
   uint32_t n = order(group);
 #ifdef BOUNDS_CHECK
-  if(res->size != n || perm->size != n ||
+  if(res->size != n || binom->size != n ||
      util1->size != n || util2->size != n) {
     printError("error: minGeneratingSet_noalloc size mismatch");
     exit(1);
@@ -142,22 +142,22 @@ bool generatingSet(Group *group,
 #endif
   fillArray_uint16(res, 0xffff); // prep set to generate from
   bool compl = 0;
-  bool permPossible = 1;
-  while(!compl && permPossible) {
-    initFromPerm(group, perm, res, pn);
+  bool binomPossible = 1;
+  while(!compl && binomPossible) {
+    initFromBinom(group, binom, res, pn);
     generateFrom_noalloc(group, res, util1, util2);
-    permPossible = shiftPerm(perm, n - 1);
+    binomPossible = shiftBinom(binom, n - 1);
     compl = isComplete(util1);
   }
   if(!compl) {
     fillArray_uint16(res, 0xffff);
   }
-  return permPossible;
+  return binomPossible;
 }
 
 bool minGeneratingSet_noalloc(Group *group,
                               Array_uint16 *res,
-                              Array_uint16 *perm,
+                              Array_uint16 *binom,
                               Array_uint16 *util1,
                               Array_uint16 *util2)
 {
@@ -165,94 +165,35 @@ bool minGeneratingSet_noalloc(Group *group,
   uint32_t n = order(group);
   uint32_t pn = 0; // pn-subsets as start, determined in the following
   for(i = 0; i < n; i++) {
-    if(*at_uint16(perm, i) != 0xffff) pn++;
+    if(*at_uint16(binom, i) != 0xffff) pn++;
   }
-  bool permPossible = 1;
+  bool binomPossible = 1;
   bool compl = 0;
   for(i = pn; i <= n; i++) {
-    while(permPossible && !compl) {
-      permPossible = generatingSet(group, res, perm, util1, util2, i);
+    while(binomPossible && !compl) {
+      binomPossible = generatingSet(group, res, binom, util1, util2, i);
       compl = *at_uint16(res, 0) != 0xffff; // 1-ele is always there at ind=0
     }
-    if(!permPossible && i < n) { // go to pn + 1
-      initPerm(perm, i + 1); // initialize the pn + 1 perm
-      permPossible = 1;
+    if(!binomPossible && i < n) { // go to pn + 1
+      initBinom(binom, i + 1); // initialize the pn + 1 binom
+      binomPossible = 1;
     }
-    if(compl) return permPossible;
+    if(compl) return binomPossible;
   }
   if(!compl) fillArray_uint16(res, 0xffff);
-  return permPossible;
+  return binomPossible;
 }
 
 Array_uint16 *minGeneratingSet_alloc(Group *group) {
   uint32_t n = order(group);
   Array_uint16 *res = allocArray_uint16(n);
-  Array_uint16 *perm = allocArray_uint16(n);
+  Array_uint16 *binom = allocArray_uint16(n);
   Array_uint16 *util1 = allocArray_uint16(n);
   Array_uint16 *util2 = allocArray_uint16(n);
-  initPerm(perm, 1);
-  minGeneratingSet_noalloc(group, res, perm, util1, util2);
-  freeArray_uint16(perm);
+  initBinom(binom, 1);
+  minGeneratingSet_noalloc(group, res, binom, util1, util2);
+  freeArray_uint16(binom);
   freeArray_uint16(util1);
   freeArray_uint16(util2);
   return res;
- }
-
-/*
-  Fills, starting with 0: perm[i] = i, ending (including) ind - 1
- */
-inline void toIdBefore(Array_uint16 *perm, uint16_t ind) {
-  uint32_t i;
-  for(i = 0; i < ind; i++) {
-    *at_uint16(perm, i) = i;
-  }
-}
-
-
-/*
-  since the perm can be 0xffff terminated, more complicated cases need to be
-  considered (ie. is t0 end element / is t1 end element)
-*/
-bool shiftPerm(Array_uint16 *perm, uint16_t max) {
-  uint32_t i;
-  uint16_t *ele_t0;
-  uint16_t *ele_t1;
-  for(i = 0; i < perm->size - 1; i++) {
-    ele_t0 = at_uint16(perm, i);
-    ele_t1 = at_uint16(perm, i + 1);
-
-    if(*ele_t1 == 0xffff) { // t0 is end element, inc t0 if possible
-      if(*ele_t0 < max) {
-        (*ele_t0)++;
-        toIdBefore(perm, i);
-        return 1;
-      } else {
-        return 0;
-      }
-    } else if (*ele_t1 - *ele_t0 > 1) { // test if case 1 is applicable
-      (*ele_t0)++;
-      toIdBefore(perm, i);
-      return 1;
-    } else if (i == perm->size - 2) { // t1 is end element, inc t1 if possible
-      if(*ele_t1 < max) {
-        toIdBefore(perm, i + 1);
-        (*ele_t1)++;
-        return 1;
-      } else {
-        return 0;
-      }
-    }
-  }
-  return 0;
-}
-
-void initPerm(Array_uint16 *perm, uint16_t n) {
-#ifdef BOUNDS_CHECK
-  if(n > perm->size) {
-    printError("error: initPerm, n too large for array\n");
-    exit(1);
-  }
-#endif
-  fillArray_uint16(perm, 0xffff);
-  toIdBefore(perm, n);
 }

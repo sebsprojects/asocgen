@@ -2,8 +2,7 @@
 #define GROUP_GEN
 
 #include "group.h"
-#include "../common/common.h"
-
+#include "../common/common_includes.h"
 
 /*
   Generates from the elements (not indices) in set. Returns the generated
@@ -74,37 +73,6 @@ bool minGeneratingSet_noalloc(Group *group,
 Array_uint16 *minGeneratingSet_alloc(Group *group);
 
 
-/*
-  Shifts perm by one step (if possible) according to the following scheme:
-    1. [ a b ... x [x + >= 2] ... ]      -> [ 0 1 ... [x + 1] [x + >= 2] ... ]
-    2. [ a b ... x [x + 1] 0xffff ... ]  -> [ 0 1 ... x [x + 2 < max] ...]
-    3. [ 0 1 ... [max - 2] [max - 1] 0xffff ...]   -> no action
-  For example n = 3, max = 5
-    ( 0 1 2 0xffff ...) -> (case 2)
-    ( 0 1 3 0xffff ...) ->
-    ( 0 2 3 0xffff ...) ->
-    ( 1 2 3 0xffff ...) -> (case 2)
-    ( 0 1 4 0xffff ...) ->
-    ( 0 2 4 0xffff ...) ->
-    ( 1 2 4 0xffff ...) ->
-    ( 0 3 4 0xffff ...) ->
-    ( 1 3 4 0xffff ...) ->
-    ( 2 3 4 0xffff ...) -> (case 3)
-  Input:
-    perm  -  array of the form a[0] < a[1] < ... < a[n-1], 0xffff, 0xffff, ...
-    max   -  1 + maximal element to occur in perm (ie. perm[<n] < max)
-  Return:
-    1  -  if shift was possible (case 1, 2)
-    0  -  if shift was impossible (case 3)
-*/
-bool shiftPerm(Array_uint16 *perm, uint16_t max);
-
-
-/*
-  Fills perm with 0xffff and fills to id before (excluding) index n
- */
-void initPerm(Array_uint16 *perm, uint16_t n);
-
 
 /*
   Packs n elements in res tightly into the first n array spaces (ordered)
@@ -114,5 +82,7 @@ void initPerm(Array_uint16 *perm, uint16_t n);
   possible 0xffff entries between ais
  */
 void truncGeneratedSet(Group *group, Array_uint16 *res, bool shrink);
+
+
 
 #endif
