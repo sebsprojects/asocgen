@@ -1,95 +1,25 @@
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <math.h>
 
 #include "common.h"
-#include "sarray.h"
+#include "sarray16.h"
 #include "sbitfield.h"
 #include "smap.h"
 
 
-void padString(char *string, uint32_t val) {
+void padStringForInt(char *string, uint32_t val) {
   if(val < 10) sprintf(string + strlen(string), "  ");
   else if(val < 100) sprintf(string + strlen(string), " ");
 }
 
 void sprint_uint(char *string, uint32_t val) {
   if(val == 0xff) {
-    padString(string, 0);
+    padStringForInt(string, 0);
     sprintf(string + strlen(string), "~ ");
   } else {
-    padString(string, val);
+    padStringForInt(string, val);
     sprintf(string + strlen(string), "%u ", val);
   }
-}
-
-void sprintArray_uint8(char *string, Array_uint8 *arr) {
-  uint32_t n = arr->size;
-  uint32_t i;
-  string[0] = '\0';
-
-  sprintf(string, "[ ");
-  for(i = 0; i < n; i++) {
-    padString(string, *at_uint8(arr, i));
-    sprintf(string + strlen(string), "%u", *at_uint8(arr, i));
-    if(i < n - 1) sprintf(string + strlen(string), ", ");
-    if((i + 1) % 10 == 0) sprintf(string + strlen(string), "\n  ");
-  }
-  sprintf(string + strlen(string), " ]\n");
-}
-
-void sprintArray_uint16(char *string, Array_uint16 *arr) {
-  uint32_t n = arr->size;
-  uint32_t i;
-  string[0] = '\0';
-
-  sprintf(string, "[ ");
-  for(i = 0; i < n; i++) {
-    padString(string, *at_uint16(arr, i));
-    sprintf(string + strlen(string), "%u", *at_uint16(arr, i));
-    if(i < n - 1) sprintf(string + strlen(string), ", ");
-    if((i + 1) % 10 == 0) sprintf(string + strlen(string), "\n  ");
-  }
-  sprintf(string + strlen(string), " ]\n");
-}
-
-void sprintArraySquare_uint8(char *string, Array_uint8 *arr, uint32_t sq) {
-  uint32_t i, j;
-  uint8_t ele;
-  string[0] = '\0';
-
-  for(i = 0; i < sq; i++) {
-    for(j = 0; j < sq; j++) {
-      ele = *at_uint8(arr, i * sq + j);
-      sprint_uint(string, ele);
-    }
-    sprintf(string + strlen(string), "\n");
-  }
-}
-
-void sprintArraySquare_uint16(char *string, Array_uint16 *arr, uint32_t sq) {
-  uint32_t i, j;
-  uint8_t ele;
-  string[0] = '\0';
-
-  for(i = 0; i < sq; i++) {
-    for(j = 0; j < sq; j++) {
-      ele = *at_uint16(arr, i * sq + j);
-      sprint_uint(string, ele);
-    }
-    sprintf(string + strlen(string), "\n");
-  }
-}
-
-void printArray_uint8(char *string, Array_uint8 *arr) {
-  sprintArray_uint8(string, arr);
-  printf(string);
-}
-
-void printArray_uint16(char *string, Array_uint16 *arr) {
-  sprintArray_uint16(string, arr);
-  printf(string);
 }
 
 void printError(char *error) {
@@ -107,22 +37,7 @@ void sprintBinary_uint8(char *pstring, uint8_t n) {
   }
 }
 
-void sprintBitfield(char *pstring, Bitfield *bf) {
-  pstring[bf->bitCount] = '\0';
-  uint32_t i;
-  for(i = 0; i < bf->bitCount; i++) {
-    if(testBit(bf, i) == 0) {
-      pstring[bf->bitCount - i - 1] = '0';
-    } else {
-      pstring[bf->bitCount - i - 1] = '1';
-    }
-  }
-}
-
-void printBitfield(char *pstring, Bitfield *bf) {
-  sprintBitfield(pstring, bf);
-  printf("%s\n", pstring);
-}
+// --------------------------------------------------------------------------
 
 uint32_t factorial(uint32_t n) {
 #ifdef BOUNDS_CHECK
@@ -139,35 +54,35 @@ uint32_t factorial(uint32_t n) {
 }
 
 Array_uint16 *getPrimeFactors_alloc(uint16_t n) {
-  Array_uint16 *factors = allocArray_uint16(n / 2); // *might* be improved
+  Array_uint16 *factors = aui16_alloc(n / 2); // *might* be improved
   uint32_t i;
   uint32_t c = 0;
   uint32_t sqrtn = floor(sqrt(n));
   for(i = 2; i <= sqrtn; i++) {
     while(n % i == 0) {
-      *at_uint16(factors, c) = i;
+      *aui16_at(factors, c) = i;
       c++;
       n = n / i;
     }
   }
   if(n > 2) {
-    *at_uint16(factors, c) = n;
+    *aui16_at(factors, c) = n;
     c++;
   }
-  shrink_uint16(factors, c);
+  aui16_shrink(factors, c);
   return factors;
 }
 
 Array_uint16 *getFactors_alloc(uint16_t n) {
-  Array_uint16 *factors = allocArray_uint16(n / 2); // *might* be improved
+  Array_uint16 *factors = aui16_alloc(n / 2); // *might* be improved
   uint32_t i;
   uint32_t c = 0;
   for(i = 1; i <= n; i++) {
     if(n % i == 0) {
-      *at_uint16(factors, c) = i;
+      *aui16_at(factors, c) = i;
       c++;
     }
   }
-  shrink_uint16(factors, c);
+  aui16_shrink(factors, c);
   return factors;
 }

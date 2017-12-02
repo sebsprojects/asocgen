@@ -12,17 +12,17 @@ void example_hom() {
   Group *c2n = createCn(2 * n);
   group_printSummary(cn);
   group_printSummary(c2n);
-  Map_uint16 *map = allocMap_uint16(2 * n, 1);
+  Map_uint16 *map = mapui16_alloc(2 * n, 1);
   uint32_t i;
   for(i = 0; i < 2 * n; i++) {
-    *at_uint16(map->domain, i) = i;
-    *at_uint16(map->codomain, i) = i % 2;
+    *aui16_at(map->domain, i) = i;
+    *aui16_at(map->codomain, i) = i % 2;
   }
-  printf("is valid map: %u\n", isValidMap(map));
+  printf("is valid map: %u\n", mapui16_isValid(map));
   GroupHom *hom = allocGroupHom(c2n, cn, map);
   printf("is valid hom: %u\n", isValidGroupHom(hom));
   freeGroupHom(hom);
-  freeMap_uint16(map);
+  mapui16_free(map);
   group_free(c2n);
   group_free(cn);
 }

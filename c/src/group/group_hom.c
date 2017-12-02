@@ -1,6 +1,5 @@
 #include "group_hom.h"
 
-
 GroupHom *allocGroupHom(Group *from, Group *to, Map_uint16 *map) {
   GroupHom *hom = malloc(sizeof(GroupHom));
   hom->from = from;
@@ -17,10 +16,10 @@ bool isValidGroupHom(GroupHom *hom) {
   //if(!isValidMap(hom->map)) {
   //  return 0;
   //}
-  if(!areEqualSets_uint16(hom->map->domain, hom->from->set)) {
+  if(!aui16_areEqualSets(hom->map->domain, hom->from->set)) {
     return 0;
   }
-  if(!isSubset_uint16(hom->map->codomain, hom->to->set)) {
+  if(!aui16_isSubset(hom->map->codomain, hom->to->set)) {
     return 0;
   }
   if(!hasGroupHomProp(hom)) {
@@ -34,12 +33,13 @@ bool hasGroupHomProp(GroupHom *hom) {
   uint32_t i, j;
   uint16_t a, b, x, y;
   for(i = 0; i < n; i++) {
-    a = *at_uint16(hom->map->domain, i);
+    a = *aui16_at(hom->map->domain, i);
     for(j = 0; j < n; j++) {
-      b = *at_uint16(hom->map->domain, j);
+      b = *aui16_at(hom->map->domain, j);
       // could be gopi instead if arrayEqual(hom->map->domain, home->from->set)
-      x = mapEle_uint16(hom->map, gop(hom->from, a, b));
-      y = gop(hom->to, mapInd_uint16(hom->map, i), mapInd_uint16(hom->map, j));
+      x = mapui16_mapEle(hom->map, gop(hom->from, a, b));
+      y = gop(hom->to, mapui16_mapInd(hom->map, i),
+              mapui16_mapInd(hom->map, j));
       if(x != y) {
         return 0;
       }
@@ -54,11 +54,12 @@ bool hasGroupHomPropFromGen(GroupHom *hom,
   uint32_t i, j;
   uint16_t a, b, x, y;
   for(i = 0; i < genFrom->size; i++) {
-    a = *at_uint16(genFrom, i);
+    a = *aui16_at(genFrom, i);
     for(j = 0; j < genFrom->size; j++) {
-      b = *at_uint16(genTo, j);
-      x = mapEle_uint16(hom->map, gop(hom->from, a, b));
-      y = gop(hom->to, mapEle_uint16(hom->map, a), mapEle_uint16(hom->map, b));
+      b = *aui16_at(genTo, j);
+      x = mapui16_mapEle(hom->map, gop(hom->from, a, b));
+      y = gop(hom->to, mapui16_mapEle(hom->map, a),
+              mapui16_mapEle(hom->map, b));
       if(x != y) {
         return 0;
       }
@@ -69,7 +70,7 @@ bool hasGroupHomPropFromGen(GroupHom *hom,
 
 bool isIsomorphism(GroupHom *hom) {
   return group_order(hom->from) == group_order(hom->to) &&
-    isInjective(hom->map);
+    mapui16_isInjective(hom->map);
 }
 
 bool isIsomorphismFromGen(GroupHom *hom,

@@ -2,40 +2,39 @@
 #define COMMON
 
 #include <stdint.h>
-
-struct Array_uint8;
-struct Array_uint16;
-struct Bitfield;
-struct Map_uint16;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef int32_t bool;
 
-void printArray_uint8(char *pstring, struct Array_uint8 *arr);
-void printArray_uint16(char *pstring, struct Array_uint16 *arr);
 
-void sprintArray_uint8(char *pstring, struct Array_uint8 *arr); // *6 + 10
-void sprintArray_uint16(char *pstring, struct Array_uint16 *arr); // *6 + 10
+// --------------------------------------------------------------------------
+// String and Printing
+// --------------------------------------------------------------------------
 
-void sprintArraySquare_uint8(char *pstring, struct Array_uint8 *arr,
-                             uint32_t sq);
-void sprintArraySquare_uint16(char *pstring, struct Array_uint16 *arr,
-                              uint32_t sq);
+void padStringForInt(char *string, uint32_t val);
+void sprint_uint(char *string, uint32_t val);
 
 void printError(char *error);
-
 void sprintBinary_uint8(char *pstring, uint8_t n);
 void sprintBinary_uint64(char *pstring, uint64_t n);
 
-void sprintBitfield(char *pstring, struct Bitfield *bf);
-void printBitfield(char *pstring, struct Bitfield *bf);
 
-//void sprintMap_uint16(char *pstring, struct Map_uint16 *map);
-//void printMap_uint16(char *pstring, struct Map_uint16 *map);
-
+// --------------------------------------------------------------------------
+// Math
+// --------------------------------------------------------------------------
 
 uint32_t factorial(uint32_t n);
+
+struct Array_uint16;
 struct Array_uint16 *getPrimeFactors_alloc(uint16_t n);
 struct Array_uint16 *getFactors_alloc(uint16_t n);
+
+
+// --------------------------------------------------------------------------
+// Inline Functions
+// --------------------------------------------------------------------------
 
 inline uint8_t getRowIndex(uint32_t n, uint32_t ind) {
   return ind / n;

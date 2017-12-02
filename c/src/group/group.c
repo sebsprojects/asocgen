@@ -3,6 +3,34 @@
 
 #include "group.h"
 
+Group *group_alloc(uint16_t order, bool indexed) {
+  Group *group = malloc(sizeof(Group));
+  group->indexed = indexed;
+  group->set = aui16_alloc(order);
+  group->gtab = aui16_alloc(order * order);
+  group->invs = aui16_alloc(order);
+  return group;
+}
+
+void group_free(Group *group) {
+  aui16_free(group->invs);
+  aui16_free(group->gtab);
+  aui16_free(group->set);
+  free(group);
+}
+
+void group_setInvs(Group *group) {
+  uint16_t i, j;
+  uint16_t n = group_order(group);
+  for(i = 0; i < n; i++) {
+    for(j = 0; j < n; j++) {
+      if(gopi(group, i, j) == 0) {
+        *aui16_at(group->invs, i) = *aui16_at(group->set, j);
+        break;
+      }
+    }
+  }
+}
 
 bool group_isCommutative(Group *group) {
   uint32_t i, j;
@@ -19,7 +47,7 @@ bool group_isCyclic(Group *group) {
   uint32_t i;
   uint16_t n = group_order(group);
   for(i = 0; i < n; i++) {
-    if(group_elementOrder(group, *at_uint16(group->set, i)) == n) return 1;
+    if(group_elementOrder(group, *aui16_at(group->set, i)) == n) return 1;
   }
   return 0;
 }
@@ -56,21 +84,23 @@ uint16_t group_elementOrderi(Group *group, uint16_t ind) {
   return ord;
 }
 
-void group_setInvs(Group *group) {
-  uint16_t i, j;
-  uint16_t n = group_order(group);
+Map_uint16 *group_orderDist(Group *group) {
+  uint32_t n = group_order(group);
+  Array_uint16 *primeFac = getFactors_alloc(n);
+  Array_uint16 *orderCounts = aui16_alloc(primeFac->size);
+  aui16_fill(orderCounts, 0);
+  uint32_t i, orderi;
   for(i = 0; i < n; i++) {
-    for(j = 0; j < n; j++) {
-      if(gopi(group, i, j) == 0) {
-        *at_uint16(group->invs, i) = *at_uint16(group->set, j);
-        break;
-      }
-    }
+    orderi = group_elementOrderi(group, i);
+    (*aui16_at(orderCounts, aui16_indexOf(primeFac, orderi)))++;
   }
+  Map_uint16 *map = mapui16_alloc_ref(primeFac->size, 0, primeFac,
+                                      orderCounts);
+  return map;
 }
 
 uint16_t group_neutral(Group *group) {
-  return *at_uint16(group->set, group_neutral(group));
+  return *aui16_at(group->set, group_neutrali(group));
 }
 
 uint32_t group_neutrali(Group *group) {
@@ -85,20 +115,17 @@ uint32_t group_neutrali(Group *group) {
   return neutralInd;
 }
 
-Group *group_alloc(uint16_t order, bool indexed) {
-  Group *group = malloc(sizeof(Group));
-  group->indexed = indexed;
-  group->set = allocArray_uint16(order);
-  group->gtab = allocArray_uint16(order * order);
-  group->invs = allocArray_uint16(order);
-  return group;
+uint16_t group_conjEle(Group* group, uint16_t toConj, uint16_t a) {
+  return gop(group, a, gop(group, toConj, group_inv(group, a)));
 }
 
-void group_free(Group *group) {
-  freeArray_uint16(group->invs);
-  freeArray_uint16(group->gtab);
-  freeArray_uint16(group->set);
-  free(group);
+Array_uint16 *group_leftCoset_alloc(Group *group, Group *subgroup,
+                                    uint16_t ele) {
+}
+
+Array_uint16 *group_rightCoset_alloc(Group *group, Group *subgroup,
+                                     uint16_t ele) {
+
 }
 
 bool group_isValid(Group *group) {
@@ -106,6 +133,48 @@ bool group_isValid(Group *group) {
   if(!group_isAsoc(group)) return 0;
   if(!group_hasNeutral(group)) return 0;
   if(!group_hasInvs(group)) return 0;
+  return 1;
+}
+
+bool group_hasValidOp(Group *group) {
+  uint32_t n = group_order(group);
+  Array_uint16 *row = aui16_copy(group->set);
+  Array_uint16 *col = aui16_copy(group->set);
+  uint32_t i, j;
+  for(i = 0; i < n; i++) {
+    for(j = 0; j < n; j++) {
+      *aui16_at(row, gopi(group, i, j)) = 0xffff;
+      *aui16_at(col, gopi(group, j, i)) = 0xffff;
+    }
+    for(j = 0; j < n; j++) {
+      if(*aui16_at(row, j) != 0xffff || *aui16_at(col, j) != 0xffff) {
+        aui16_free(row);
+        aui16_free(col);
+        return 0;
+      }
+      *aui16_at(row, j) = 0; // just not 0xffff
+      *aui16_at(col, j) = 0; // just not 0xffff
+    }
+  }
+  aui16_free(row);
+  aui16_free(col);
+  return 1;
+}
+
+bool group_isAsoc(Group *group) {
+  uint16_t a, b, c, ab, ab_c, bc, a_bc;
+  uint32_t n = group_order(group);
+  for(a = 0; a < n; a++) {
+    for(b = 0; b < n; b++) {
+      for(c = 0; c < n; c++) {
+	ab = gopi(group, a, b);
+	bc = gopi(group, b, c);
+        ab_c = gopi(group, ab, c);
+	a_bc = gopi(group, a, bc);
+	if(ab_c != a_bc) return 0;
+      }
+    }
+  }
   return 1;
 }
 
@@ -143,69 +212,12 @@ bool group_hasInvs(Group *group) {
     if(gopi(group, invInd, i) != neuInd) { // check other way
       return 0;
     }
-    if(*at_uint16(group->invs, i) != *at_uint16(group->set, invInd)) {
+    if(*aui16_at(group->invs, i) != *aui16_at(group->set, invInd)) {
       return 0;
     }
     invInd = 0xffffffff;
   }
   return 1;
-}
-
-bool group_hasValidOp(Group *group) {
-  uint32_t n = group_order(group);
-  Array_uint16 *row = copyArray_uint16(group->set);
-  Array_uint16 *col = copyArray_uint16(group->set);
-  uint32_t i, j;
-  for(i = 0; i < n; i++) {
-    for(j = 0; j < n; j++) {
-      *at_uint16(row, gopi(group, i, j)) = 0xffff;
-      *at_uint16(col, gopi(group, j, i)) = 0xffff;
-    }
-    for(j = 0; j < n; j++) {
-      if(*at_uint16(row, j) != 0xffff || *at_uint16(col, j) != 0xffff) {
-        freeArray_uint16(row);
-        freeArray_uint16(col);
-        return 0;
-      }
-      *at_uint16(row, j) = 0; // just not 0xffff
-      *at_uint16(col, j) = 0; // just not 0xffff
-    }
-  }
-  freeArray_uint16(row);
-  freeArray_uint16(col);
-  return 1;
-}
-
-bool group_isAsoc(Group *group) {
-  uint16_t a, b, c, ab, ab_c, bc, a_bc;
-  uint32_t n = group_order(group);
-  for(a = 0; a < n; a++) {
-    for(b = 0; b < n; b++) {
-      for(c = 0; c < n; c++) {
-	ab = gopi(group, a, b);
-	bc = gopi(group, b, c);
-        ab_c = gopi(group, ab, c);
-	a_bc = gopi(group, a, bc);
-	if(ab_c != a_bc) return 0;
-      }
-    }
-  }
-  return 1;
-}
-
-Map_uint16 *getOrderDistribution(Group *group) {
-  uint32_t n = group_order(group);
-  Array_uint16 *primeFac = getFactors_alloc(n);
-  Array_uint16 *orderCounts = allocArray_uint16(primeFac->size);
-  fillArray_uint16(orderCounts, 0);
-  uint32_t i, orderi;
-  for(i = 0; i < n; i++) {
-    orderi = group_elementOrderi(group, i);
-    (*at_uint16(orderCounts, indexof_uint16(primeFac, orderi)))++;
-  }
-  Map_uint16 *map = allocMap_ref_uint16(primeFac->size, 0, primeFac,
-                                        orderCounts);
-  return map;
 }
 
 void group_print(Group *group) {
@@ -215,7 +227,7 @@ void group_print(Group *group) {
   if(group_isValid(group)) valid = "valid";
   else valid = "INVALID";
   printf("Group of order %u (%s)\n", n, valid);
-  sprintArraySquare_uint16(pstring, group->gtab, n);
+  aui16_sprintSquare(pstring, group->gtab, n);
   printf("%s", pstring);
   free(pstring);
 }
@@ -230,10 +242,10 @@ void group_printSummary(Group *group) {
   printf("  (*) neutral Element %u\n", group_neutral(group));
   printf("  (*) isCyclic        %u\n", group_isCyclic(group));
   printf("  (*) isCommutative   %u\n\n", group_isCommutative(group));
-  Map_uint16 *orderMap = getOrderDistribution(group);
+  Map_uint16 *orderMap = group_orderDist(group);
   char pstring[1000];
   printf("  (*) order distribution:\n");
-  printArray_uint16(pstring, orderMap->domain);
-  printArray_uint16(pstring, orderMap->codomain);
-  freeMap_uint16(orderMap);
+  aui16_print(pstring, orderMap->domain);
+  aui16_print(pstring, orderMap->codomain);
+  mapui16_free(orderMap);
 }

@@ -1,19 +1,18 @@
 #include "ring.h"
 
-
 Ring *ring_alloc(uint16_t order, bool indexed) {
   Ring *ring = malloc(sizeof(Ring));
-  ring->set = allocArray_uint16(order);
-  ring->mtab = allocArray_uint16(order * order);
-  ring->atab = allocArray_uint16(order * order);
+  ring->set = aui16_alloc(order);
+  ring->mtab = aui16_alloc(order * order);
+  ring->atab = aui16_alloc(order * order);
   ring->indexed = indexed;
   return ring;
 }
 
 void ring_free(Ring *ring) {
-  freeArray_uint16(ring->atab);
-  freeArray_uint16(ring->mtab);
-  freeArray_uint16(ring->set);
+  aui16_free(ring->atab);
+  aui16_free(ring->mtab);
+  aui16_free(ring->set);
   free(ring);
 }
 
@@ -29,7 +28,7 @@ bool ring_isCommutative(Ring *ring) {
 }
 
 uint16_t ring_zero(Ring *ring) {
-  return *at_uint16(ring->set, ring_zeroi(ring));
+  return *aui16_at(ring->set, ring_zeroi(ring));
 }
 
 // Assumes additive group is valid (has unique zero element)
@@ -44,7 +43,7 @@ uint32_t ring_zeroi(Ring *ring) {
 }
 
 uint16_t ring_one(Ring *ring) {
-  return *at_uint16(ring->set, ring_onei(ring));
+  return *aui16_at(ring->set, ring_onei(ring));
 }
 
 uint32_t ring_onei(Ring *ring) {

@@ -4,7 +4,6 @@
 #include "../common/common_includes.h"
 #include "../group/group.h"
 
-
 struct Ring {
   bool indexed;
   Array_uint16* set;
@@ -51,32 +50,32 @@ inline uint16_t ring_order(Ring *ring) {
 
 inline uint16_t aop(Ring *ring, uint16_t i, uint16_t j) {
     if(!ring->indexed) {
-    i = indexof_uint16(ring->set, i);
-    j = indexof_uint16(ring->set, j);
+    i = aui16_indexOf(ring->set, i);
+    j = aui16_indexOf(ring->set, j);
   }
-  return *at_uint16(ring->atab, get2DIndex(ring_order(ring), i, j));
+  return *aui16_at(ring->atab, get2DIndex(ring_order(ring), i, j));
 }
 
 inline uint16_t aopi(Ring *ring, uint16_t i, uint16_t j) {
-  uint16_t ele = *at_uint16(ring->atab, get2DIndex(ring_order(ring), i, j));
+  uint16_t ele = *aui16_at(ring->atab, get2DIndex(ring_order(ring), i, j));
   if(!ring->indexed) {
-    return indexof_uint16(ring->set, ele);
+    return aui16_indexOf(ring->set, ele);
   }
   return ele;
 }
 
 inline uint16_t mop(Ring *ring, uint16_t i, uint16_t j) {
   if(!ring->indexed) {
-    i = indexof_uint16(ring->set, i);
-    j = indexof_uint16(ring->set, j);
+    i = aui16_indexOf(ring->set, i);
+    j = aui16_indexOf(ring->set, j);
   }
-  return *at_uint16(ring->mtab, get2DIndex(ring_order(ring), i, j));
+  return *aui16_at(ring->mtab, get2DIndex(ring_order(ring), i, j));
 }
 
 inline uint16_t mopi(Ring *ring, uint16_t i, uint16_t j) {
-  uint16_t ele = *at_uint16(ring->mtab, get2DIndex(ring_order(ring), i, j));
+  uint16_t ele = *aui16_at(ring->mtab, get2DIndex(ring_order(ring), i, j));
   if(!ring->indexed) {
-    return indexof_uint16(ring->set, ele);
+    return aui16_indexOf(ring->set, ele);
   }
   return ele;
 }

@@ -16,36 +16,38 @@ struct Group {
 };
 typedef struct Group Group;
 
+Group *group_alloc(uint16_t order, bool indexed);
+void group_free(Group *group);
+void group_setInvs(Group *group);
 
+/* Infomative */
 bool group_isCommutative(Group *group);
 bool group_isCyclic(Group *group);
 uint16_t group_elementOrder(Group *group, uint16_t ele);
 uint16_t group_elementOrderi(Group *group, uint16_t ind);
-
+Map_uint16 *group_orderDist(Group *group);
 uint16_t group_neutral(Group *group);
 uint32_t group_neutrali(Group *group);
 
-Group *group_alloc(uint16_t order, bool indexed);
+/* Action */
+uint16_t group_conjEle(Group *group, uint16_t toConj, uint16_t a);
+Array_uint16 *group_leftCoset_alloc(Group *group, Group *subgroup,
+                                    uint16_t ele);
+Array_uint16 *group_rightCoset_alloc(Group *group, Group *subgroup,
+                                     uint16_t ele);
 
-void group_free(Group *group);
-void group_setInvs(Group *group);
+/* Validation */
 bool group_isValid(Group *group);
 bool group_hasValidOp(Group *group);
 bool group_isAsoc(Group *group);
 bool group_hasNeutral(Group *group);
 bool group_hasInvs(Group *group);
 
-Map_uint16 *getOrderDistribution(Group *group);
-
+/* Print */
 void group_printSummary(Group *group);
 void group_print(Group *group);
 
-/*
- *
- * INLINE IMPLEMENTATION
- *
- */
-
+/* Inline */
 inline uint16_t group_order(Group *group) {
   return group->set->size;
 }
@@ -53,29 +55,29 @@ inline uint16_t group_order(Group *group) {
 inline uint16_t group_inv(Group *group, uint16_t ele) {
   uint16_t ind = ele;
   if(!group->indexed) {
-    ind = indexof_uint16(group->set, ele);
+    ind = aui16_indexOf(group->set, ele);
   }
-  return *at_uint16(group->invs, ind);
+  return *aui16_at(group->invs, ind);
 }
 
 inline uint16_t group_invi(Group *group, uint16_t ind) {
-  return *at_uint16(group->invs, ind);
+  return *aui16_at(group->invs, ind);
 }
 
 // ele * ele -> ele
 inline uint16_t gop(Group *group, uint16_t i, uint16_t j) {
   if(!group->indexed) {
-    i = indexof_uint16(group->set, i);
-    j = indexof_uint16(group->set, j);
+    i = aui16_indexOf(group->set, i);
+    j = aui16_indexOf(group->set, j);
   }
-  return *at_uint16(group->gtab, get2DIndex(group_order(group), i, j));
+  return *aui16_at(group->gtab, get2DIndex(group_order(group), i, j));
 }
 
 // index * index -> index
 inline uint16_t gopi(Group *group, uint16_t i, uint16_t j) {
-  uint16_t ele = *at_uint16(group->gtab, get2DIndex(group_order(group), i, j));
+  uint16_t ele = *aui16_at(group->gtab, get2DIndex(group_order(group), i, j));
   if(!group->indexed) {
-    return indexof_uint16(group->set, ele);
+    return aui16_indexOf(group->set, ele);
   }
   return ele;
 }

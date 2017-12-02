@@ -7,3 +7,4 @@
 *.prof
 *.out*
 prof.txt
+vgcore*

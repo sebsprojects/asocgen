@@ -28,15 +28,15 @@ void generateFrom_noalloc(Group *group,
   uint32_t i, j;
   uint16_t ind, ele;
   uint32_t filled = 0;
-  fillArray_uint16(res, 0xffff); // clear res
-  //fillArray_uint16(util, 0xffff); NOT NECESSARY
+  aui16_fill(res, 0xffff); // clear res
+  //aui16_fill(util, 0xffff); NOT NECESSARY
   for(i = 0; i < set->size; i++) {
-    ele = *at_uint16(set, i);
+    ele = *aui16_at(set, i);
     if(ele == 0xffff) break;    // accept 0xffff as stop marker
     filled++;
-    ind = indexof_uint16(group->set, ele);
-    *at_uint16(res, ind) = ele; // set res[index(ele)] = ele
-    *at_uint16(util, i) = ind;  // set utl[i] = ele
+    ind = aui16_indexOf(group->set, ele);
+    *aui16_at(res, ind) = ele; // set res[index(ele)] = ele
+    *aui16_at(util, i) = ind;  // set utl[i] = ele
   }
   uint32_t prevFilled = 0;
 
@@ -45,22 +45,22 @@ void generateFrom_noalloc(Group *group,
     prevFilled = filled;
     for(i = 0; i < filled; i++) {
       for(j = 0; j <= i; j++) {
-        a = *at_uint16(util, i);
-        b = *at_uint16(util, j);
+        a = *aui16_at(util, i);
+        b = *aui16_at(util, j);
         ind = gopi(group, a, b);
-        ele = *at_uint16(group->set, ind);
-        if(*at_uint16(res, ind) == 0xffff) {
-          *at_uint16(res, ind) = ele;
-          *at_uint16(util, filled) = ind;
+        ele = *aui16_at(group->set, ind);
+        if(*aui16_at(res, ind) == 0xffff) {
+          *aui16_at(res, ind) = ele;
+          *aui16_at(util, filled) = ind;
           filled++;
         }
         // TODO HELP BRANCH PREDICT AND PUT OUTSIDE LOOP
         if(!commutative) {
           ind = gopi(group, b, a);
-          ele = *at_uint16(group->set, ind);
-          if(*at_uint16(res, ind) == 0xffff) {
-            *at_uint16(res, ind) = ele;
-            *at_uint16(util, filled) = ind;
+          ele = *aui16_at(group->set, ind);
+          if(*aui16_at(res, ind) == 0xffff) {
+            *aui16_at(res, ind) = ele;
+            *aui16_at(util, filled) = ind;
             filled++;
           }
         }
@@ -70,10 +70,10 @@ void generateFrom_noalloc(Group *group,
 }
 
 Array_uint16 *generateFrom_alloc(Group *group, Array_uint16 *set) {
-  Array_uint16 *res = allocArray_uint16(group_order(group));
-  Array_uint16 *util = allocArray_uint16(group_order(group));
+  Array_uint16 *res = aui16_alloc(group_order(group));
+  Array_uint16 *util = aui16_alloc(group_order(group));
   generateFrom_noalloc(group, set, res, util);
-  freeArray_uint16(util);
+  aui16_free(util);
   return res;
 }
 
@@ -83,13 +83,13 @@ void truncGeneratedSet(Group *group, Array_uint16 *res, bool shrink) {
   uint16_t *a, *b;
   uint16_t last = 0;
   for(i = 0; i < n; i++) {
-    a = at_uint16(res, i);
+    a = aui16_at(res, i);
     if(*a != 0xffff) { // if element is not 0xffff nothing is to be done
       last = i;
       continue;
     }
     for(j = i + 1; j < n; j++) { // find the next element != to 0xffff
-      b = at_uint16(res, j);
+      b = aui16_at(res, j);
       if(*b == 0xffff) {
         continue;
       } else { // found one, set a to b and clear b
@@ -100,7 +100,9 @@ void truncGeneratedSet(Group *group, Array_uint16 *res, bool shrink) {
       }
     }
   }
-  if(shrink) shrink_uint16(res, last + 1);
+  if(shrink) {
+    aui16_shrink(res, last + 1);
+  }
 }
 
 /*
@@ -109,7 +111,7 @@ void truncGeneratedSet(Group *group, Array_uint16 *res, bool shrink) {
 inline bool isComplete(Array_uint16 *set) {
   int32_t i;
   for(i = set->size - 1; i >= 0; i--) {
-    if(*at_uint16(set, i) == 0xffff) return 0;
+    if(*aui16_at(set, i) == 0xffff) return 0;
   }
   return 1;
 }
@@ -121,7 +123,7 @@ inline void initFromBinom(Group *group, Array_uint16 *binom,Array_uint16 *set,
                          uint32_t pn) {
   uint32_t i;
   for(i = 0; i < pn; i++) {
-    *at_uint16(set, i) = *at_uint16(group->set, *at_uint16(binom, i));
+    *aui16_at(set, i) = *aui16_at(group->set, *aui16_at(binom, i));
   }
 }
 
@@ -140,7 +142,7 @@ bool generatingSet(Group *group,
     exit(1);
   }
 #endif
-  fillArray_uint16(res, 0xffff); // prep set to generate from
+  aui16_fill(res, 0xffff); // prep set to generate from
   bool compl = 0;
   bool binomPossible = 1;
   while(!compl && binomPossible) {
@@ -150,7 +152,7 @@ bool generatingSet(Group *group,
     compl = isComplete(util1);
   }
   if(!compl) {
-    fillArray_uint16(res, 0xffff);
+    aui16_fill(res, 0xffff);
   }
   return binomPossible;
 }
@@ -165,14 +167,14 @@ bool minGeneratingSet_noalloc(Group *group,
   uint32_t n = group_order(group);
   uint32_t pn = 0; // pn-subsets as start, determined in the following
   for(i = 0; i < n; i++) {
-    if(*at_uint16(binom, i) != 0xffff) pn++;
+    if(*aui16_at(binom, i) != 0xffff) pn++;
   }
   bool binomPossible = 1;
   bool compl = 0;
   for(i = pn; i <= n; i++) {
     while(binomPossible && !compl) {
       binomPossible = generatingSet(group, res, binom, util1, util2, i);
-      compl = *at_uint16(res, 0) != 0xffff; // 1-ele is always there at ind=0
+      compl = *aui16_at(res, 0) != 0xffff; // 1-ele is always there at ind=0
     }
     if(!binomPossible && i < n) { // go to pn + 1
       initBinom(binom, i + 1); // initialize the pn + 1 binom
@@ -180,21 +182,21 @@ bool minGeneratingSet_noalloc(Group *group,
     }
     if(compl) return binomPossible;
   }
-  if(!compl) fillArray_uint16(res, 0xffff);
+  if(!compl) aui16_fill(res, 0xffff);
   return binomPossible;
 }
 
 Array_uint16 *minGeneratingSet_alloc(Group *group) {
   uint32_t n = group_order(group);
-  Array_uint16 *res = allocArray_uint16(n);
-  Array_uint16 *binom = allocArray_uint16(n);
-  Array_uint16 *util1 = allocArray_uint16(n);
-  Array_uint16 *util2 = allocArray_uint16(n);
+  Array_uint16 *res = aui16_alloc(n);
+  Array_uint16 *binom = aui16_alloc(n);
+  Array_uint16 *util1 = aui16_alloc(n);
+  Array_uint16 *util2 = aui16_alloc(n);
   initBinom(binom, 1);
   minGeneratingSet_noalloc(group, res, binom, util1, util2);
-  freeArray_uint16(binom);
-  freeArray_uint16(util1);
-  freeArray_uint16(util2);
+  aui16_free(binom);
+  aui16_free(util1);
+  aui16_free(util2);
   return res;
 }
 
@@ -206,18 +208,18 @@ Group *generateSubgroup(Group *group, Array_uint16 *set) {
   uint32_t i, j;
   uint16_t a, b;
   for(i = 0; i < m; i++) {
-    a = *at_uint16(res, i);
-    *at_uint16(subgroup->set, i) = a;
+    a = *aui16_at(res, i);
+    *aui16_at(subgroup->set, i) = a;
   }
   for(i = 0; i < m; i++) {
-    a = *at_uint16(res, i);
+    a = *aui16_at(res, i);
     for(j = 0; j <= i; j++) {
-      b = *at_uint16(res, j);
-      *at_uint16(subgroup->gtab, get2DIndex(m, i, j)) = gop(group, a, b);
-      *at_uint16(subgroup->gtab, get2DIndex(m, j, i)) = gop(group, b, a);
+      b = *aui16_at(res, j);
+      *aui16_at(subgroup->gtab, get2DIndex(m, i, j)) = gop(group, a, b);
+      *aui16_at(subgroup->gtab, get2DIndex(m, j, i)) = gop(group, b, a);
     }
   }
   group_setInvs(subgroup);
-  freeArray_uint16(res);
+  aui16_free(res);
   return subgroup;
 }
