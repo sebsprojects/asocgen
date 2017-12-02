@@ -3,9 +3,9 @@
 * Urgent
 
 * Short Term
+** TODO Misc: Make file-names uniform w.r.t. _ and nospace
 
 * Features
-** DONE Group: Implement Sn
 ** TODO Group: Implement isomorphism check
 ** TODO Group: Get indexed group (isomorphic)
 ** TODO General: Devise text format for storing group mtabs (incompl / groups)
@@ -14,10 +14,11 @@
 ** TODO Asocgen: Write to progress file
 
 * Housekeeping
-** TODO Make sure changes to setInvs, hasInvs are correct
-** TODO Move Permutation utility out of group/group_gen
+** TODO Check if array access in i-j loop can be move outside j-loopy
+** TODO Adjust for looks with abelian check (hom)
+** TODO Shrinkage behavior with memcpy and so on?
 ** TODO Check i-j loops for completely <= vs < thing
-** TODO Check uint32 vs uint16 etc. for loops
+** TODO Check uint32 vs uint16 vs int32 etc. for loops
 
 ** TODO Think about index -> element gop / map for performance's sake
 

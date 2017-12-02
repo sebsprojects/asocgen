@@ -44,6 +44,8 @@ bool areComposableMaps(Map_uint16 *f, Map_uint16 *g);
 
 bool areEqualMaps(Map_uint16 *f, Map_uint16 *g);
 
+bool isSurjectiveIn(Map_uint16 *map, Array_uint16 *set);
+bool isInjective(Map_uint16 *map);
 
 /*
  * g->domain->size must be equal to comp->domain->size to get a valid map

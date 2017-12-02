@@ -202,6 +202,20 @@ bool areEqualArrays_uint16(Array_uint16 *a, Array_uint16 *b) {
   return 1;
 }
 
+bool areEqualSets_uint16(Array_uint16 *a, Array_uint16 *b) {
+  return isSubset_uint16(a, b) && isSubset_uint16(b, a);
+}
+
+bool isSubset_uint16(Array_uint16 *sub, Array_uint16 *set) {
+  uint32_t i;
+  for(i = 0; i < sub->size; i++) {
+    if(indexof_uint16(set, *at_uint16(sub, i)) >= set->size) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
 int32_t lessThanCompare_uint16(const void *x, const void *y) {
   uint16_t xx = *(uint16_t*) x;
   uint16_t yy = *(uint16_t*) y;

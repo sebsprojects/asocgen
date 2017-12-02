@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "common.h"
 #include "sarray.h"
@@ -135,4 +136,38 @@ uint32_t factorial(uint32_t n) {
   } else {
     return n * factorial(n - 1);
   }
+}
+
+Array_uint16 *getPrimeFactors_alloc(uint16_t n) {
+  Array_uint16 *factors = allocArray_uint16(n / 2); // *might* be improved
+  uint32_t i;
+  uint32_t c = 0;
+  uint32_t sqrtn = floor(sqrt(n));
+  for(i = 2; i <= sqrtn; i++) {
+    while(n % i == 0) {
+      *at_uint16(factors, c) = i;
+      c++;
+      n = n / i;
+    }
+  }
+  if(n > 2) {
+    *at_uint16(factors, c) = n;
+    c++;
+  }
+  shrink_uint16(factors, c);
+  return factors;
+}
+
+Array_uint16 *getFactors_alloc(uint16_t n) {
+  Array_uint16 *factors = allocArray_uint16(n / 2); // *might* be improved
+  uint32_t i;
+  uint32_t c = 0;
+  for(i = 1; i <= n; i++) {
+    if(n % i == 0) {
+      *at_uint16(factors, c) = i;
+      c++;
+    }
+  }
+  shrink_uint16(factors, c);
+  return factors;
 }

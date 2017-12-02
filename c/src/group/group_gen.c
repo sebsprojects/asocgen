@@ -17,8 +17,8 @@ void generateFrom_noalloc(Group *group,
                           Array_uint16 *res,    // result
                           Array_uint16 *util)   // incremental fill
 {
-  uint32_t n = order(group);
-  bool commutative = isCommutative(group);
+  uint32_t n = group_order(group);
+  bool commutative = group_isCommutative(group);
 #ifdef BOUNDS_CHECK
   if(n != res->size || n != util->size) {
     printError("error: generateFrom_noalloc size mismatch");
@@ -70,15 +70,15 @@ void generateFrom_noalloc(Group *group,
 }
 
 Array_uint16 *generateFrom_alloc(Group *group, Array_uint16 *set) {
-  Array_uint16 *res = allocArray_uint16(order(group));
-  Array_uint16 *util = allocArray_uint16(order(group));
+  Array_uint16 *res = allocArray_uint16(group_order(group));
+  Array_uint16 *util = allocArray_uint16(group_order(group));
   generateFrom_noalloc(group, set, res, util);
   freeArray_uint16(util);
   return res;
 }
 
 void truncGeneratedSet(Group *group, Array_uint16 *res, bool shrink) {
-  uint32_t n = order(group);
+  uint32_t n = group_order(group);
   uint32_t i, j;
   uint16_t *a, *b;
   uint16_t last = 0;
@@ -132,7 +132,7 @@ bool generatingSet(Group *group,
                    Array_uint16 *util2,
                    uint32_t pn)
 {
-  uint32_t n = order(group);
+  uint32_t n = group_order(group);
 #ifdef BOUNDS_CHECK
   if(res->size != n || binom->size != n ||
      util1->size != n || util2->size != n) {
@@ -162,7 +162,7 @@ bool minGeneratingSet_noalloc(Group *group,
                               Array_uint16 *util2)
 {
   uint32_t i;
-  uint32_t n = order(group);
+  uint32_t n = group_order(group);
   uint32_t pn = 0; // pn-subsets as start, determined in the following
   for(i = 0; i < n; i++) {
     if(*at_uint16(binom, i) != 0xffff) pn++;
@@ -185,7 +185,7 @@ bool minGeneratingSet_noalloc(Group *group,
 }
 
 Array_uint16 *minGeneratingSet_alloc(Group *group) {
-  uint32_t n = order(group);
+  uint32_t n = group_order(group);
   Array_uint16 *res = allocArray_uint16(n);
   Array_uint16 *binom = allocArray_uint16(n);
   Array_uint16 *util1 = allocArray_uint16(n);
@@ -196,4 +196,28 @@ Array_uint16 *minGeneratingSet_alloc(Group *group) {
   freeArray_uint16(util1);
   freeArray_uint16(util2);
   return res;
+}
+
+Group *generateSubgroup(Group *group, Array_uint16 *set) {
+  Array_uint16 *res = generateFrom_alloc(group, set);
+  truncGeneratedSet(group, res, 1);
+  uint32_t m = res->size;    // Subgroup order
+  Group *subgroup = group_alloc(m, 0);
+  uint32_t i, j;
+  uint16_t a, b;
+  for(i = 0; i < m; i++) {
+    a = *at_uint16(res, i);
+    *at_uint16(subgroup->set, i) = a;
+  }
+  for(i = 0; i < m; i++) {
+    a = *at_uint16(res, i);
+    for(j = 0; j <= i; j++) {
+      b = *at_uint16(res, j);
+      *at_uint16(subgroup->gtab, get2DIndex(m, i, j)) = gop(group, a, b);
+      *at_uint16(subgroup->gtab, get2DIndex(m, j, i)) = gop(group, b, a);
+    }
+  }
+  group_setInvs(subgroup);
+  freeArray_uint16(res);
+  return subgroup;
 }

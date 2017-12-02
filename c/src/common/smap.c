@@ -45,6 +45,25 @@ bool areEqualMaps(Map_uint16 *f, Map_uint16 *g) {
   return 1;
 }
 
+bool isSurjectiveIn(Map_uint16 *map, Array_uint16 *set) {
+  return isSubset_uint16(set, map->codomain);
+}
+
+bool isInjective(Map_uint16 *map) {
+  uint32_t i, j;
+  uint16_t ele;
+  for(i = 0; i < map->codomain->size; i++) {
+    ele = *at_uint16(map->codomain, i);
+    for(j = 0; j < map->codomain->size; j++) {
+      if(i == j) continue;
+      if(ele == *at_uint16(map->codomain, j)) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+}
+
 void compMaps_noalloc(Map_uint16 *f, Map_uint16 *g, Map_uint16 *comp,
                       bool hasDomainSet) {
   uint32_t i;

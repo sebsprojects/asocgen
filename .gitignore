@@ -5,4 +5,5 @@
 
 .stack-work
 *.prof
-*.out
+*.out*
+prof.txt

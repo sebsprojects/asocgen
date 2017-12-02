@@ -28,41 +28,41 @@ Array_uint16 *generateFrom_alloc(Group *group, Array_uint16 *set);
 
 /*
   Searches for the first generating set with exactly pn elements starting with
-  perm and shifting until either
+  binom and shifting until either
     a) a set is found:
       * The permutation now is the configuration after (!) the successful one
         if the shift was possible and returns 1. If no shift was possible
         returns 0.
       * res now contains scattered (non-tight) element (not index) generating
         set
-    b) all perms were tried (unsuccessfully):
+    b) all binoms were tried (unsuccessfully):
       * res is set to 0xffff, returns 0
 
   order(group), res, util1, util2 have to have the same size
-  res, util1, util2 will be overwritten, perm will be shifted until success
-  or failure (end position of perm at pn)
+  res, util1, util2 will be overwritten, binom will be shifted until success
+  or failure (end position of binom at pn)
  */
 bool generatingSet(Group *group,
                    Array_uint16 *res,   // result
-                   Array_uint16 *perm,  // perm to use
+                   Array_uint16 *binom,  // binom to use
                    Array_uint16 *util1, // util
                    Array_uint16 *util2, // util for genFrom
                    uint32_t pn);        // pn-subsets are considered
 
 
 /*
-  Searches for a minimal generating set starting with the state of perm.
+  Searches for a minimal generating set starting with the state of binom.
   Calls generatingSet with increasing pn (as it continues to fail) until
-  a generating set is found. Similar to generatingSet, the perm is shifted
+  a generating set is found. Similar to generatingSet, the binom is shifted
   one after the successful one (if possible; returns 1) or returns 0 otherwise
 
-  array sizes have to comply with order(group) (except perm) and will be
+  array sizes have to comply with order(group) (except binom) and will be
   overwritten
  */
 bool minGeneratingSet_noalloc(Group *group,
                               Array_uint16 *res,    // result
-                              Array_uint16 *perm,   // perm to use
-                              Array_uint16 *util1,  // perm to use
+                              Array_uint16 *binom,   // binom to use
+                              Array_uint16 *util1,  // binom to use
                               Array_uint16 *util2); // util for genFrom
 
 
@@ -83,6 +83,8 @@ Array_uint16 *minGeneratingSet_alloc(Group *group);
  */
 void truncGeneratedSet(Group *group, Array_uint16 *res, bool shrink);
 
+
+Group *generateSubgroup(Group *group, Array_uint16 *set);
 
 
 #endif

@@ -34,6 +34,8 @@ void printBitfield(char *pstring, struct Bitfield *bf);
 
 
 uint32_t factorial(uint32_t n);
+struct Array_uint16 *getPrimeFactors_alloc(uint16_t n);
+struct Array_uint16 *getFactors_alloc(uint16_t n);
 
 inline uint8_t getRowIndex(uint32_t n, uint32_t ind) {
   return ind / n;

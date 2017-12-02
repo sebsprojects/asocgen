@@ -54,8 +54,26 @@ void copyIntoArray_uint16(Array_uint16 *to, Array_uint16* from);
 void grow_uint16(Array_uint16 *array, uint32_t newSize);
 void shrink_uint16(Array_uint16 *array, uint32_t newSize);
 
+/*
+  Only true if a[i] == b[i] for equal sized arrays and i = 0..a->size
+ */
 bool areEqualArrays_uint16(Array_uint16 *a, Array_uint16 *b);
+
+/*
+  Disregards ordering. Still requires equal sizes
+ */
 //bool haveEqualContent_uint16(Array_uint16 *a, Array_uint16 *b);
+
+/*
+  Disregards ordering and duplicates
+ */
+bool areEqualSets_uint16(Array_uint16 *a, Array_uint16 *b);
+
+/*
+  Disrefards ordering and duplicates
+ */
+bool isSubset_uint16(Array_uint16 *sub, Array_uint16 *set);
+
 
 /*
  * Sort between array between [start, end]. Uses qsort from stdlib
