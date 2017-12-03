@@ -49,21 +49,21 @@ Array_uint16 *aui16_allocN(uint32_t n, ...) {
   return array;
 }
 
-Array_uint16 *allocArray1_uint16(uint16_t e1) {
+Array_uint16 *aui16_alloc1(uint16_t e1) {
   return aui16_allocN(1, e1);
 }
-Array_uint16 *allocArray2_uint16(uint16_t e1, uint16_t e2) {
+Array_uint16 *aui16_alloc2(uint16_t e1, uint16_t e2) {
   return aui16_allocN(2, e1, e2);
 }
-Array_uint16 *allocArray3_uint16(uint16_t e1, uint16_t e2, uint16_t e3) {
+Array_uint16 *aui16_alloc3(uint16_t e1, uint16_t e2, uint16_t e3) {
   return aui16_allocN(3, e1, e2, e3);
 }
-Array_uint16 *allocArray4_uint16(uint16_t e1, uint16_t e2,
-                                 uint16_t e3, uint16_t e4) {
+Array_uint16 *aui16_alloc4(uint16_t e1, uint16_t e2,
+                           uint16_t e3, uint16_t e4) {
   return aui16_allocN(4, e1, e2, e3, e4);
 }
-Array_uint16 *allocArray5_uint16(uint16_t e1, uint16_t e2, uint16_t e3,
-                                 uint16_t e4, uint16_t e5) {
+Array_uint16 *aui16_alloc5(uint16_t e1, uint16_t e2, uint16_t e3,
+                           uint16_t e4, uint16_t e5) {
   return aui16_allocN(5, e1, e2, e3, e4, e5);
 }
 

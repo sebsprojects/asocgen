@@ -27,6 +27,18 @@ void example_hom() {
   group_free(cn);
 }
 
+void example_sn() {
+  Group *s5 = createSn(5);
+  group_printSummary(s5);
+  char *pstring = malloc(1000);
+  Array_uint16 *set = minGeneratingSet_alloc(s5);
+  aui16_print(pstring, set);
+  aui16_free(set);
+  group_free(s5);
+  free(pstring);
+}
+
 int main() {
-  example_hom();
+  //example_hom();
+  example_sn();
 }

@@ -4,6 +4,10 @@
 #include "../common/common_includes.h"
 #include "../group/group.h"
 
+/*
+  Represents a Ring. If indexed is 1, then set must be id = { 0, 1, ..., n }
+ */
+
 struct Ring {
   bool indexed;
   Array_uint16* set;
@@ -12,37 +16,44 @@ struct Ring {
 };
 typedef struct Ring Ring;
 
+
+// --------------------------------------------------------------------------
+// Management
+// --------------------------------------------------------------------------
+
 Ring *ring_alloc(uint16_t order, bool indexed);
 void ring_free(Ring *ring);
 
-// Crashes if there is no zero
-uint16_t ring_zero(Ring *ring);
+Group *ring_getAdditiveGroup_alloc();
+Group *ring_getUnitGroup_alloc();
 
+
+// --------------------------------------------------------------------------
+// Information
+// --------------------------------------------------------------------------
+
+uint16_t ring_zero(Ring *ring); // Crashes if there is no zero
 uint32_t ring_zeroi(Ring *ring);
-
-// Crashes if there is no one
-uint16_t ring_one(Ring *ring);
-
+uint16_t ring_one(Ring *ring); // Crashes if there is no one
 uint32_t ring_onei(Ring *ring);
-
 
 bool ring_isCommutative(Ring *ring);
 bool ring_hasOne(Ring *ring);
-
 bool ring_isUnit(Ring *ring, uint16_t i);
 
-Group *ring_getAdditiveGroup_alloc();
-Group *ring_getUnitGroup_alloc();
+
+// --------------------------------------------------------------------------
+// Validation
+// --------------------------------------------------------------------------
 
 bool ring_isValid(Ring *ring);
 bool ring_addIsCommutativeGroup(Ring *ring);
 bool ring_mulIsAssociative(Ring *ring);
 
-/*
- *
- * INLINE IMPLEMENTATION
- *
- */
+
+// --------------------------------------------------------------------------
+// Inline Functions
+// --------------------------------------------------------------------------
 
 inline uint16_t ring_order(Ring *ring) {
   return ring->set->size;

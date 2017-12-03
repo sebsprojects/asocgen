@@ -32,6 +32,8 @@ void group_setInvs(Group *group) {
   }
 }
 
+// --------------------------------------------------------------------------
+
 bool group_isCommutative(Group *group) {
   uint32_t i, j;
   uint16_t n = group_order(group);
@@ -103,9 +105,9 @@ uint16_t group_neutral(Group *group) {
   return *aui16_at(group->set, group_neutrali(group));
 }
 
-uint32_t group_neutrali(Group *group) {
+uint16_t group_neutrali(Group *group) {
   uint32_t i;
-  uint32_t neutralInd = 0xffffffff;
+  uint16_t neutralInd = 0xffff;
   for(i = 0; i < group_order(group); i++) {
     if(gopi(group, i, 0) == 0) {
       neutralInd = i;
@@ -115,8 +117,14 @@ uint32_t group_neutrali(Group *group) {
   return neutralInd;
 }
 
+// --------------------------------------------------------------------------
+
 uint16_t group_conjEle(Group* group, uint16_t toConj, uint16_t a) {
   return gop(group, a, gop(group, toConj, group_inv(group, a)));
+}
+
+uint16_t group_conjElei(Group *group, uint16_t toConj, uint16_t a) {
+  return gopi(group, a, gopi(group, toConj, group_invi(group, a)));
 }
 
 Array_uint16 *group_leftCoset_alloc(Group *group, Group *subgroup,
@@ -127,6 +135,42 @@ Array_uint16 *group_rightCoset_alloc(Group *group, Group *subgroup,
                                      uint16_t ele) {
 
 }
+
+bool group_isSubgroup(Group *group, Group *subgroup) {
+  if(!aui16_isSubset(subgroup->set, group->set)) {
+    return 0;
+  }
+  uint32_t i, j;
+  uint16_t a, b;
+  for(i = 0; i < group_order(subgroup); i++) {
+    a = *aui16_at(subgroup->set, i);
+    for(j = 0; j < group_order(subgroup); j++) {
+      b = *aui16_at(subgroup->set, j);
+      if(gop(group, a, b) != gop(subgroup, a, b)) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+}
+
+bool group_isNormalSubgroup(Group *group, Group *subgroup) {
+  Array_uint16 *conjSet = aui16_alloc(group_order(subgroup));
+  uint32_t i, j;
+  for(i = 0; i < group_order(group); i++) {
+    for(j = 0; j < group_order(subgroup); j++) {
+      *aui16_at(conjSet, j) = *aui16_at(group->set,
+                                        group_conjElei(group, j, i));
+    }
+    if(!aui16_areEqualSets(conjSet, subgroup->set)) {
+      return 0;
+    }
+  }
+  aui16_free(conjSet);
+  return 1;
+}
+
+// --------------------------------------------------------------------------
 
 bool group_isValid(Group *group) {
   if(!group_hasValidOp(group)) return 0;
@@ -197,7 +241,7 @@ bool group_hasNeutral(Group *group) {
 bool group_hasInvs(Group *group) {
   uint32_t n = group_order(group);
   uint32_t i, j;
-  uint32_t invInd = 0xffffffff;
+  uint16_t invInd = 0xffff;
   uint16_t neuInd = group_neutrali(group);
   for(i = 0; i < n; i++) {
     for(j = 0; j < n; j++) { // find inv candidate
@@ -215,10 +259,12 @@ bool group_hasInvs(Group *group) {
     if(*aui16_at(group->invs, i) != *aui16_at(group->set, invInd)) {
       return 0;
     }
-    invInd = 0xffffffff;
+    invInd = 0xffff;
   }
   return 1;
 }
+
+// --------------------------------------------------------------------------
 
 void group_print(Group *group) {
   uint32_t n = group_order(group);

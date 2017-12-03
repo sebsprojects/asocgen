@@ -3,11 +3,10 @@
 
 #include "../common/common_includes.h"
 
-
-/* Requirements:
-     if indexed == 1: set = {0, 1, ..., n}
-     else           : set = {0 < e1 < e2 < .. < en}
- */
+/*
+  Represents a group. If indexed is 1, then set must be id = { 0, 1, ..., n }
+  Invs is a tradeoff between memory usage and comp time
+*/
 struct Group {
   bool indexed;
   Array_uint16 *set;
@@ -16,38 +15,69 @@ struct Group {
 };
 typedef struct Group Group;
 
+
+// --------------------------------------------------------------------------
+// Management
+// --------------------------------------------------------------------------
+
 Group *group_alloc(uint16_t order, bool indexed);
 void group_free(Group *group);
 void group_setInvs(Group *group);
 
-/* Infomative */
+
+// --------------------------------------------------------------------------
+// Information
+// --------------------------------------------------------------------------
+
 bool group_isCommutative(Group *group);
 bool group_isCyclic(Group *group);
+
 uint16_t group_elementOrder(Group *group, uint16_t ele);
 uint16_t group_elementOrderi(Group *group, uint16_t ind);
 Map_uint16 *group_orderDist(Group *group);
-uint16_t group_neutral(Group *group);
-uint32_t group_neutrali(Group *group);
 
-/* Action */
+uint16_t group_neutral(Group *group);
+uint16_t group_neutrali(Group *group);
+
+
+// --------------------------------------------------------------------------
+// Subgroup related
+// --------------------------------------------------------------------------
+
 uint16_t group_conjEle(Group *group, uint16_t toConj, uint16_t a);
+uint16_t group_conjElei(Group *group, uint16_t toConj, uint16_t a);
+
 Array_uint16 *group_leftCoset_alloc(Group *group, Group *subgroup,
                                     uint16_t ele);
 Array_uint16 *group_rightCoset_alloc(Group *group, Group *subgroup,
                                      uint16_t ele);
 
-/* Validation */
+bool group_isSubgroup(Group *group, Group *subgroup);
+bool group_isNormalSubgroup(Group *group, Group *subgroup);
+
+// --------------------------------------------------------------------------
+// Validation
+// --------------------------------------------------------------------------
+
 bool group_isValid(Group *group);
 bool group_hasValidOp(Group *group);
 bool group_isAsoc(Group *group);
 bool group_hasNeutral(Group *group);
 bool group_hasInvs(Group *group);
 
-/* Print */
+
+// --------------------------------------------------------------------------
+// Print
+// --------------------------------------------------------------------------
+
 void group_printSummary(Group *group);
 void group_print(Group *group);
 
-/* Inline */
+
+// --------------------------------------------------------------------------
+// Inline Functions
+// --------------------------------------------------------------------------
+
 inline uint16_t group_order(Group *group) {
   return group->set->size;
 }
