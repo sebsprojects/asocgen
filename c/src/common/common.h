@@ -13,7 +13,8 @@ typedef int32_t bool;
 // String and Printing
 // --------------------------------------------------------------------------
 
-void padStringForInt(char *string, uint32_t val);
+void padString(char *string, uint32_t pad);
+void padStringForInt(char *string, uint32_t val, uint32_t numDigits);
 void sprint_uint(char *string, uint32_t val);
 
 void printError(char *error);
@@ -46,6 +47,14 @@ inline uint8_t getColIndex(uint32_t n, uint32_t ind) {
 
 inline uint32_t get2DIndex(uint32_t n, uint32_t row, uint32_t col) {
   return row * n + col;
+}
+
+inline uint32_t umin(uint32_t a, uint32_t b) {
+  return a < b ? a : b;
+}
+
+inline uint32_t umax(uint32_t a, uint32_t b) {
+  return a < b ? b : a;
 }
 
 #endif

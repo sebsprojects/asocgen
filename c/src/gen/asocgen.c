@@ -238,18 +238,8 @@ void initMTab(MTab* mtab, Zip *zip, uint8_t init) {
   *aui8_at(mtab, n + 1) = init;
 }
 
-void printMTab(char *pstring, MTab *mtab, uint8_t n) {
-  aui8_sprintSquare(pstring, mtab, n);
-  printf("%s\n", pstring);
-}
-
 void printZip(Zip *zip) {
   printf("Zip = [ n=%u p=%u l=%u ]\n", zip->n, zip->pos, zip->lastEntry);
-}
-
-void printIOrd(char *pstring, Zip *zip) {
-  aui8_sprint(pstring, zip->iord);
-  printf("%s", pstring);
 }
 
 bool isComplete(MTab *mtab, uint8_t n) {

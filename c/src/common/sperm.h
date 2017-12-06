@@ -44,6 +44,11 @@ void initPerm(struct Array_uint16 *array);
 */
 bool shiftBinom(struct Array_uint16 *array, uint16_t max);
 
+/*
+  Returns the current k of ("n over k"), i.e. the number of non 0xffff elements
+  in array.
+ */
+uint32_t binom_getK(struct Array_uint16 *array);
 
 /*
   Shifts the array by one step towards the "numerical" maximum value if

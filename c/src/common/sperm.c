@@ -58,6 +58,16 @@ bool shiftBinom(Array_uint16 *array, uint16_t max) {
   return 0;
 }
 
+uint32_t binom_getK(Array_uint16 *array) {
+  uint32_t i;
+  for(i = 0; i < array->size; i++) {
+    if(*aui16_at(array, i) == 0xffff) {
+      return i;
+    }
+  }
+  return 0xffffffff;
+}
+
 uint16_t nextBiggestInd(Array_uint16 *array, uint32_t pos) {
   uint16_t curr = *aui16_at(array, pos);
   uint16_t cand = 0xffff;

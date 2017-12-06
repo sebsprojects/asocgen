@@ -18,7 +18,7 @@ endif
 
 # Testing
 ifneq "$(findstring test, $(MAKECMDGOALS))" ""
-CC_FLAGS = -Wall -O3
+CC_FLAGS = -Wall -O3 -DBOUNDS_CHECK
 LN_FLAGS = -lm
 SRC_FILES = $(wildcard test/test.c)
 else
@@ -73,4 +73,4 @@ bin/%.o: src/ring/%.c
 	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
 
 clean:
-	-rm $(BIN) $(TEST) $(OBJ_FILES) $(DEP_FILES)
+	-rm ./bin/*

@@ -1,6 +1,8 @@
 #include "sarray16.h"
 
+#include "sarray8.h"
 #include <stdarg.h>
+#include <math.h>
 
 #ifdef STRUCT_HACK // -------------------------------------------------------
 
@@ -65,6 +67,15 @@ Array_uint16 *aui16_alloc4(uint16_t e1, uint16_t e2,
 Array_uint16 *aui16_alloc5(uint16_t e1, uint16_t e2, uint16_t e3,
                            uint16_t e4, uint16_t e5) {
   return aui16_allocN(5, e1, e2, e3, e4, e5);
+}
+
+Array_uint16 *aui16_allocFromAui8(Array_uint8 *aui8) {
+  Array_uint16 *array = aui16_alloc(aui8->size);
+  uint32_t i;
+  for(i = 0; i < array->size; i++) {
+    *aui16_at(array, i) = *aui8_at(aui8, i);
+  }
+  return array;
 }
 
 // -------------------------------------------------------------------------
@@ -166,6 +177,31 @@ bool aui16_hasDuplicates(Array_uint16 *array) {
   return 1;
 }
 
+uint16_t aui16_getMax(Array_uint16 *array) {
+  uint32_t i;
+  uint16_t ele;
+  uint16_t max = 0;
+  for(i = 0; i < array->size; i++) {
+    ele = *aui16_at(array, i);
+    if(ele > max) {
+      max = ele;
+    }
+  }
+  return max;
+}
+
+uint16_t aui16_getMin(Array_uint16 *array) {
+  uint32_t i;
+  uint16_t ele;
+  uint16_t min = 0xffff;
+  for(i = 0; i < array->size; i++) {
+    if(ele < min) {
+      min = ele;
+    }
+  }
+  return min;
+}
+
 // -------------------------------------------------------------------------
 
 bool aui16_isProperSet(Array_uint16 *array) {
@@ -188,38 +224,116 @@ bool aui16_isSubset(Array_uint16 *sub, Array_uint16 *set) {
 
 // -------------------------------------------------------------------------
 
-void aui16_sprint(char *string, Array_uint16 *arr) {
-  uint32_t n = arr->size;
+void aui16_sprintLine(Array_uint16 *arr, char *pstring,
+                      uint32_t indFrom, uint32_t indTo, uint32_t indent,
+                      uint32_t digitPad) {
   uint32_t i;
-  string[0] = '\0';
-
-  sprintf(string, "[ ");
-  for(i = 0; i < n; i++) {
-    padStringForInt(string, *aui16_at(arr, i));
-    sprintf(string + strlen(string), "%u", *aui16_at(arr, i));
-    if(i < n - 1) sprintf(string + strlen(string), ", ");
-    if((i + 1) % 10 == 0) sprintf(string + strlen(string), "\n  ");
-  }
-  sprintf(string + strlen(string), " ]\n");
-}
-
-void aui16_sprintSquare(char *string, Array_uint16 *arr, uint32_t sq) {
-  uint32_t i, j;
-  uint8_t ele;
-  string[0] = '\0';
-
-  for(i = 0; i < sq; i++) {
-    for(j = 0; j < sq; j++) {
-      ele = *aui16_at(arr, i * sq + j);
-      sprint_uint(string, ele);
+  uint16_t ele;
+  padString(pstring, indent);
+  for(i = indFrom; i < indTo; i++) {
+    ele = *aui16_at(arr, i);
+    padStringForInt(pstring, ele, digitPad);
+    sprintf(pstring + strlen(pstring), "%u", ele);
+    if(i < indTo - 1) {
+      sprintf(pstring + strlen(pstring), ", ");
     }
-    sprintf(string + strlen(string), "\n");
   }
 }
 
-void aui16_print(char *string, Array_uint16 *arr) {
-  aui16_sprint(string, arr);
-  printf(string);
+/*
+  [  aaa, bbbb,   cc, dddd,
+    dddd,    e, ffff,       ]
+ */
+void aui16_sprintToNum(Array_uint16 *arr, char *pstring,
+                       uint32_t elePerLine, uint32_t indent) {
+  if(arr->size == 0) {
+    sprintf(pstring + strlen(pstring), "[   ]");
+    return;
+  }
+  uint32_t n = arr->size;
+  uint16_t max = aui16_getMax(arr);
+  uint32_t maxDigits = max == 0 ? 1 : floor(log10(max)) + 1;
+  uint32_t entrySize = 2 + maxDigits;
+  uint32_t numLines = ceil((float) n / elePerLine);
+  uint32_t eleInLastLine = n % elePerLine;
+  // first line
+  padString(pstring + strlen(pstring), indent); // manual indent b/c "["
+  sprintf(pstring + strlen(pstring), "[ ");
+  aui16_sprintLine(arr, pstring, 0, umin(arr->size, elePerLine), 0,
+                   maxDigits);
+  uint32_t i;
+  // 1 until before last line
+  for(i = 1; i < numLines - 1; i++) {
+    sprintf(pstring + strlen(pstring), "\n  ");
+    aui16_sprintLine(arr, pstring, i * elePerLine, (i + 1) *elePerLine,
+                     indent, maxDigits);
+  }
+  // last line
+  if(numLines > 1) {
+    sprintf(pstring + strlen(pstring), "\n  ");
+    aui16_sprintLine(arr, pstring, (numLines - 1) * elePerLine,
+                     umin(arr->size, numLines * elePerLine),
+                     indent, maxDigits);
+    if(eleInLastLine > 0) {
+      // pads until the end of the line
+      padString(pstring, (elePerLine - eleInLastLine) * entrySize);
+    }
+  }
+  sprintf(pstring + strlen(pstring), " ]");
+}
+
+void aui16_sprintToWidth(Array_uint16 *arr, char *pstring, uint32_t width,
+                       uint32_t indent) {
+  uint16_t max = aui16_getMax(arr);
+  uint32_t maxDigits = max == 0 ? 1 : floor(log10(max)) + 1;
+  uint32_t entrySize = 2 + maxDigits;
+  uint32_t additionalSpace = 2 + 2;
+  if(width < indent + additionalSpace + entrySize) { // not enough line wid
+    return;
+  }
+  uint32_t elePerLine = (width - indent - additionalSpace) / entrySize;
+  aui16_sprintToNum(arr, pstring, elePerLine, indent);
+}
+
+void aui16_sprintDefault(Array_uint16 *arr, char *pstring) {
+  aui16_sprintToWidth(arr, pstring, 80, 0);
+}
+
+void aui16_sprintSquare(Array_uint16 *arr, char *pstring, uint32_t indent) {
+  uint32_t sq = ceil(sqrt(arr->size));
+  aui16_sprintToNum(arr, pstring, sq, indent);
+}
+
+void aui16_printToNum(Array_uint16 *arr,uint32_t elePerLine,uint32_t indent) {
+  char *pstring = malloc(128 + arr->size * 16); // pretty safe guess I think
+  pstring[0] = '\0';
+  aui16_sprintToNum(arr, pstring,  elePerLine, indent);
+  printf("%s\n", pstring);
+  free(pstring);
+}
+
+void aui16_printToWidth(Array_uint16 *arr, uint32_t width, uint32_t indent) {
+  char *pstring = malloc(128 + arr->size * 16); // pretty safe guess I think
+  pstring[0] = '\0';
+  aui16_sprintToWidth(arr, pstring,  width, indent);
+  printf("%s\n", pstring);
+  free(pstring);
+}
+
+void aui16_printDefault(Array_uint16 *arr) {
+  char *pstring = malloc(128 + arr->size * 16); // pretty safe guess I think
+  pstring[0] = '\0';
+  aui16_sprintDefault(arr, pstring);
+  printf("%s\n", pstring);
+  free(pstring);
+}
+
+void aui16_printSquare(Array_uint16 *arr, uint32_t indent) {
+  char *pstring = malloc(128 + arr->size * 16); // pretty safe guess I think
+  pstring[0] = '\0';
+  aui16_sprintSquare(arr, pstring, indent);
+  printf("%s\n", pstring);
+  free(pstring);
 }
 
 // -------------------------------------------------------------------------

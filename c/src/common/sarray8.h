@@ -31,9 +31,22 @@ void aui8_free(Array_uint8 *array);
 // Printing
 // --------------------------------------------------------------------------
 
-void aui8_sprint(char *string, Array_uint8 *arr);
-void aui8_sprintSquare(char *string, Array_uint8 *arr, uint32_t sq);
-void aui8_print(char *string, Array_uint8 *arr);
+/*
+  See sarray16.h for documentation. Array_uint8 are simply converted to
+  Array_uint16 and then are printed as such.
+ */
+
+void aui8_sprintToNum(Array_uint8 *arr, char *pstring,
+                      uint32_t elePerLine, uint32_t indent);
+void aui8_sprintToWidth(Array_uint8 *arr, char *pstring,
+                        uint32_t elePerLine, uint32_t indent);
+void aui8_sprintDefault(Array_uint8 *arr, char *pstring);
+void aui8_sprintSquare(Array_uint8 *arr, char *pstring, uint32_t indent);
+
+void aui8_printToNum(Array_uint8 *arr, uint32_t elePerLine,uint32_t indent);
+void aui8_printToWidth(Array_uint8 *arr, uint32_t width, uint32_t indent);
+void aui8_printDefault(Array_uint8 *arr);
+void aui8_printSquare(Array_uint8 *arr, uint32_t indent);
 
 
 // --------------------------------------------------------------------------

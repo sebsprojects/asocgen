@@ -60,12 +60,6 @@ uint16_t group_elementOrder(Group *group, uint16_t ele) {
   while(r != 0) {
     r = gop(group, r, ele);
     ord++;
-#ifdef BOUNDS_CHECK
-    if(ord > group_order(group)) {
-      printError("error: element order not finite!");
-      exit(1);
-    }
-#endif
   }
   return ord;
 }
@@ -76,12 +70,6 @@ uint16_t group_elementOrderi(Group *group, uint16_t ind) {
   while(r != 0) {
     r = gopi(group, r, ind);
     ord++;
-#ifdef BOUNDS_CHECK
-    if(ord > group_order(group)) {
-      printError("error: element order not finite!");
-      exit(1);
-    }
-#endif
   }
   return ord;
 }
@@ -129,11 +117,12 @@ uint16_t group_conjElei(Group *group, uint16_t toConj, uint16_t a) {
 
 Array_uint16 *group_leftCoset_alloc(Group *group, Group *subgroup,
                                     uint16_t ele) {
+  return 0;
 }
 
 Array_uint16 *group_rightCoset_alloc(Group *group, Group *subgroup,
                                      uint16_t ele) {
-
+  return 0;
 }
 
 bool group_isSubgroup(Group *group, Group *subgroup) {
@@ -273,14 +262,13 @@ void group_print(Group *group) {
   if(group_isValid(group)) valid = "valid";
   else valid = "INVALID";
   printf("Group of order %u (%s)\n", n, valid);
-  aui16_sprintSquare(pstring, group->gtab, n);
-  printf("%s", pstring);
+  aui16_printSquare(group->gtab, 2);
   free(pstring);
 }
 
 void group_printSummary(Group *group) {
   uint32_t n = group_order(group);
-  printf("\nSummary of group candidate of order %u\n", n);
+  printf("Summary of group candidate of order %u\n", n);
   printf("  (*) hasGroupOp %u\n", group_hasValidOp(group));
   printf("  (*) isAssoc    %u\n", group_isAsoc(group));
   printf("  (*) hasNeutral %u\n", group_hasNeutral(group));
@@ -289,9 +277,7 @@ void group_printSummary(Group *group) {
   printf("  (*) isCyclic        %u\n", group_isCyclic(group));
   printf("  (*) isCommutative   %u\n\n", group_isCommutative(group));
   Map_uint16 *orderMap = group_orderDist(group);
-  char pstring[1000];
   printf("  (*) order distribution:\n");
-  aui16_print(pstring, orderMap->domain);
-  aui16_print(pstring, orderMap->codomain);
+  // TODO
   mapui16_free(orderMap);
 }

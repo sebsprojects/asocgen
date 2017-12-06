@@ -6,18 +6,30 @@
 #include "sbitfield.h"
 #include "smap.h"
 
+void padString(char *string, uint32_t pad) {
+  uint32_t i;
+  for(i = 0; i < pad; i++) {
+    sprintf(string + strlen(string), " ");
+  }
+}
 
-void padStringForInt(char *string, uint32_t val) {
-  if(val < 10) sprintf(string + strlen(string), "  ");
-  else if(val < 100) sprintf(string + strlen(string), " ");
+void padStringForInt(char *string, uint32_t val, uint32_t numDigits) {
+  double valLen;
+  if(val > 0) {
+    valLen = log10(val);
+  } else {
+    valLen = 0;
+  }
+  uint32_t toPad = numDigits - floor(valLen) - 1;
+  padString(string, toPad);
 }
 
 void sprint_uint(char *string, uint32_t val) {
   if(val == 0xff) {
-    padStringForInt(string, 0);
+    padStringForInt(string, 0, 3);
     sprintf(string + strlen(string), "~ ");
   } else {
-    padStringForInt(string, val);
+    padStringForInt(string, val, 3);
     sprintf(string + strlen(string), "%u ", val);
   }
 }

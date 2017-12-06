@@ -4,6 +4,11 @@
 #include "group.h"
 #include "../common/common_includes.h"
 
+
+// --------------------------------------------------------------------------
+// Generating from group elements
+// --------------------------------------------------------------------------
+
 /*
   Generates from the elements (not indices) in set. Returns the generated
   set in res (elements, not indicies, may be intersperesed with 0xffff).
@@ -11,10 +16,10 @@
   Size req : |group| = |res| = |util|, set can be unordered & 0xffff term
   res and utils will be ovewritten, set not
  */
-void generateFrom_noalloc(Group *group,
-                          Array_uint16 *set,   // set to generate from
-                          Array_uint16 *res,   // result
-                          Array_uint16 *util); // fills up, unordered
+void group_generateFrom_noalloc(Group *group,
+                                Array_uint16 *set,   // set to generate from
+                                Array_uint16 *res,   // result
+                                Array_uint16 *util); // fills up, unordered
 
 
 /*
@@ -23,8 +28,12 @@ void generateFrom_noalloc(Group *group,
   The result is not tightly packed (0xffff possibly intersperesed
   between values). For a tight packing truncGeneratedSet is recommended.
  */
-Array_uint16 *generateFrom_alloc(Group *group, Array_uint16 *set);
+Array_uint16 *group_generateFrom_alloc(Group *group, Array_uint16 *set);
 
+
+// --------------------------------------------------------------------------
+// Generating sets of groups
+// --------------------------------------------------------------------------
 
 /*
   Searches for the first generating set with exactly pn elements starting with
@@ -42,12 +51,12 @@ Array_uint16 *generateFrom_alloc(Group *group, Array_uint16 *set);
   res, util1, util2 will be overwritten, binom will be shifted until success
   or failure (end position of binom at pn)
  */
-bool generatingSet(Group *group,
-                   Array_uint16 *res,   // result
-                   Array_uint16 *binom,  // binom to use
-                   Array_uint16 *util1, // util
-                   Array_uint16 *util2, // util for genFrom
-                   uint32_t pn);        // pn-subsets are considered
+bool group_generatingSet(Group *group,
+                         Array_uint16 *res,   // result
+                         Array_uint16 *binom,  // binom to use
+                         Array_uint16 *util1, // util
+                         Array_uint16 *util2, // util for genFrom
+                         uint32_t pn);        // pn-subsets are considered
 
 
 /*
@@ -59,19 +68,18 @@ bool generatingSet(Group *group,
   array sizes have to comply with order(group) (except binom) and will be
   overwritten
  */
-bool minGeneratingSet_noalloc(Group *group,
-                              Array_uint16 *res,    // result
-                              Array_uint16 *binom,   // binom to use
-                              Array_uint16 *util1,  // binom to use
-                              Array_uint16 *util2); // util for genFrom
+bool group_minGeneratingSet_noalloc(Group *group,
+                                    Array_uint16 *res,    // result
+                                    Array_uint16 *binom,   // binom to use
+                                    Array_uint16 *util1,  // binom to use
+                                    Array_uint16 *util2); // util for genFrom
 
 
 /*
   Returns a pointer to a newly allocated array containing the first minimal
   generating set found
  */
-Array_uint16 *minGeneratingSet_alloc(Group *group);
-
+Array_uint16 *group_minGeneratingSet_alloc(Group *group);
 
 
 /*
@@ -81,10 +89,14 @@ Array_uint16 *minGeneratingSet_alloc(Group *group);
   res has to be ordered in the sense that a1 < a2 < ... < an neglecting
   possible 0xffff entries between ais
  */
-void truncGeneratedSet(Group *group, Array_uint16 *res, bool shrink);
+void group_truncGeneratedSet(Array_uint16 *res, bool shrink);
 
 
-Group *generateSubgroup(Group *group, Array_uint16 *set);
+// --------------------------------------------------------------------------
+// Generating a subgroup from elements
+// --------------------------------------------------------------------------
+
+Group *group_generateSubgroup_alloc(Group *group, Array_uint16 *set);
 
 
 #endif

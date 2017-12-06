@@ -33,9 +33,7 @@ bool doStep(MTab *mtab, Zip* zip);
 bool isAsocIncmplNaive(MTab *mtab, Zip* zip);
 bool isAsocIncmplIncrm(MTab *mtab, Zip* zip);
 
-void printMTab(char *pstring, MTab *mtab, uint8_t n);
 void printZip(Zip *zip);
-void printIOrd(char *pstring, Zip *zip);
 
 bool isComplete(MTab *mtab, uint8_t n);
 

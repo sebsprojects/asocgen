@@ -12,14 +12,14 @@
     store new element(s) in res, new indice(s) in util
 
  */
-void generateFrom_noalloc(Group *group,
-                          Array_uint16 *set,    // set to generate from
-                          Array_uint16 *res,    // result
-                          Array_uint16 *util)   // incremental fill
+void group_generateFrom_noalloc(Group *group,
+                                Array_uint16 *set,    // set to generate from
+                                Array_uint16 *res,    // result
+                                Array_uint16 *util)   // incremental fill
 {
-  uint32_t n = group_order(group);
   bool commutative = group_isCommutative(group);
 #ifdef BOUNDS_CHECK
+  uint32_t n = group_order(group);
   if(n != res->size || n != util->size) {
     printError("error: generateFrom_noalloc size mismatch");
     exit(1);
@@ -69,26 +69,25 @@ void generateFrom_noalloc(Group *group,
   }
 }
 
-Array_uint16 *generateFrom_alloc(Group *group, Array_uint16 *set) {
+Array_uint16 *group_generateFrom_alloc(Group *group, Array_uint16 *set) {
   Array_uint16 *res = aui16_alloc(group_order(group));
   Array_uint16 *util = aui16_alloc(group_order(group));
-  generateFrom_noalloc(group, set, res, util);
+  group_generateFrom_noalloc(group, set, res, util);
   aui16_free(util);
   return res;
 }
 
-void truncGeneratedSet(Group *group, Array_uint16 *res, bool shrink) {
-  uint32_t n = group_order(group);
+void group_truncGeneratedSet(Array_uint16 *res, bool shrink) {
   uint32_t i, j;
   uint16_t *a, *b;
   uint16_t last = 0;
-  for(i = 0; i < n; i++) {
+  for(i = 0; i < res->size; i++) {
     a = aui16_at(res, i);
     if(*a != 0xffff) { // if element is not 0xffff nothing is to be done
       last = i;
       continue;
     }
-    for(j = i + 1; j < n; j++) { // find the next element != to 0xffff
+    for(j = i + 1; j < res->size; j++) { // find the next element != to 0xffff
       b = aui16_at(res, j);
       if(*b == 0xffff) {
         continue;
@@ -127,12 +126,12 @@ inline void initFromBinom(Group *group, Array_uint16 *binom,Array_uint16 *set,
   }
 }
 
-bool generatingSet(Group *group,
-                   Array_uint16 *res,
-                   Array_uint16 *binom,
-                   Array_uint16 *util1,
-                   Array_uint16 *util2,
-                   uint32_t pn)
+bool group_generatingSet(Group *group,
+                         Array_uint16 *res,
+                         Array_uint16 *binom,
+                         Array_uint16 *util1,
+                         Array_uint16 *util2,
+                         uint32_t pn)
 {
   uint32_t n = group_order(group);
 #ifdef BOUNDS_CHECK
@@ -147,7 +146,7 @@ bool generatingSet(Group *group,
   bool binomPossible = 1;
   while(!compl && binomPossible) {
     initFromBinom(group, binom, res, pn);
-    generateFrom_noalloc(group, res, util1, util2);
+    group_generateFrom_noalloc(group, res, util1, util2);
     binomPossible = shiftBinom(binom, n - 1);
     compl = isComplete(util1);
   }
@@ -157,11 +156,11 @@ bool generatingSet(Group *group,
   return binomPossible;
 }
 
-bool minGeneratingSet_noalloc(Group *group,
-                              Array_uint16 *res,
-                              Array_uint16 *binom,
-                              Array_uint16 *util1,
-                              Array_uint16 *util2)
+bool group_minGeneratingSet_noalloc(Group *group,
+                                    Array_uint16 *res,
+                                    Array_uint16 *binom,
+                                    Array_uint16 *util1,
+                                    Array_uint16 *util2)
 {
   uint32_t i;
   uint32_t n = group_order(group);
@@ -173,7 +172,7 @@ bool minGeneratingSet_noalloc(Group *group,
   bool compl = 0;
   for(i = pn; i <= n; i++) {
     while(binomPossible && !compl) {
-      binomPossible = generatingSet(group, res, binom, util1, util2, i);
+      binomPossible = group_generatingSet(group, res, binom, util1, util2, i);
       compl = *aui16_at(res, 0) != 0xffff; // 1-ele is always there at ind=0
     }
     if(!binomPossible && i < n) { // go to pn + 1
@@ -186,23 +185,23 @@ bool minGeneratingSet_noalloc(Group *group,
   return binomPossible;
 }
 
-Array_uint16 *minGeneratingSet_alloc(Group *group) {
+Array_uint16 *group_minGeneratingSet_alloc(Group *group) {
   uint32_t n = group_order(group);
   Array_uint16 *res = aui16_alloc(n);
   Array_uint16 *binom = aui16_alloc(n);
   Array_uint16 *util1 = aui16_alloc(n);
   Array_uint16 *util2 = aui16_alloc(n);
   initBinom(binom, 1);
-  minGeneratingSet_noalloc(group, res, binom, util1, util2);
+  group_minGeneratingSet_noalloc(group, res, binom, util1, util2);
   aui16_free(binom);
   aui16_free(util1);
   aui16_free(util2);
   return res;
 }
 
-Group *generateSubgroup(Group *group, Array_uint16 *set) {
-  Array_uint16 *res = generateFrom_alloc(group, set);
-  truncGeneratedSet(group, res, 1);
+Group *group_generateSubgroup_alloc(Group *group, Array_uint16 *set) {
+  Array_uint16 *res = group_generateFrom_alloc(group, set);
+  group_truncGeneratedSet(res, 1);
   uint32_t m = res->size;    // Subgroup order
   Group *subgroup = group_alloc(m, 0);
   uint32_t i, j;

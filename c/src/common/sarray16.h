@@ -46,6 +46,9 @@ Array_uint16 *aui16_alloc5(uint16_t e1, uint16_t e2, uint16_t e3,
                                    uint16_t e4, uint16_t e5);
 Array_uint16 *aui16_allocN(uint32_t n, ...);
 
+struct Array_uint8;
+Array_uint16 *aui16_allocFromAui8(struct Array_uint8 *aui8);
+
 void aui16_free(Array_uint16 *array);
 
 
@@ -76,6 +79,9 @@ bool aui16_haveEqualContent(Array_uint16 *a, Array_uint16 *b);
 
 bool aui16_hasDuplicates(Array_uint16 *array);
 
+uint16_t aui16_getMax(Array_uint16 *array);
+uint16_t aui16_getMin(Array_uint16 *array);
+
 
 // --------------------------------------------------------------------------
 // Set Functions
@@ -98,9 +104,41 @@ bool aui16_isSubset(Array_uint16 *sub, Array_uint16 *set);
 // Printing
 // --------------------------------------------------------------------------
 
-void aui16_sprint(char *pstring, Array_uint16 *arr);
-void aui16_sprintSquare(char *pstring, Array_uint16 *arr, uint32_t sq);
-void aui16_print(char *pstring, Array_uint16 *arr);
+/*
+  Prints the interval [indFrom, indTo) of the array. Pads up to digitPad
+  digits.
+  If startBracket == 1, then the pstring starts with "[ ".
+  If endBracket == 1, then the pstring ends with " ]".
+ */
+void aui16_sprintLine(Array_uint16 *arr, char *pstring,
+                      uint32_t indFrom, uint32_t indTo, uint32_t indent,
+                      uint32_t digitPad);
+
+/*
+  sprints the array with maximal width = width. Pads the last line to full
+  width (aligned).
+ */
+void aui16_sprintToNum(Array_uint16 *arr, char *pstring,
+                       uint32_t elePerLine, uint32_t indent);
+void aui16_sprintToWidth(Array_uint16 *arr, char *pstring,
+                         uint32_t elePerLine, uint32_t indent);
+
+
+/*
+  sprints with width = 80 and indent = 0
+ */
+void aui16_sprintDefault(Array_uint16 *arr, char *pstring);
+
+/*
+  sprints the array as a square matrix (row-wise). If array size is not a
+  square number, then then the next biggest integer is taken as square size
+ */
+void aui16_sprintSquare(Array_uint16 *arr, char *pstring, uint32_t indent);
+
+void aui16_printToNum(Array_uint16 *arr, uint32_t elePerLine,uint32_t indent);
+void aui16_printToWidth(Array_uint16 *arr, uint32_t width, uint32_t indent);
+void aui16_printDefault(Array_uint16 *arr);
+void aui16_printSquare(Array_uint16 *arr, uint32_t indent);
 
 
 // --------------------------------------------------------------------------
