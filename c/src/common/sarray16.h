@@ -105,18 +105,24 @@ bool aui16_isSubset(Array_uint16 *sub, Array_uint16 *set);
 // --------------------------------------------------------------------------
 
 /*
-  Prints the interval [indFrom, indTo) of the array. Pads up to digitPad
+  Sorints the interval [indFrom, indTo) of the array. Pads up to digitPad
   digits.
   If startBracket == 1, then the pstring starts with "[ ".
   If endBracket == 1, then the pstring ends with " ]".
  */
-void aui16_sprintLine(Array_uint16 *arr, char *pstring,
-                      uint32_t indFrom, uint32_t indTo, uint32_t indent,
-                      uint32_t digitPad);
+void aui16_sprintLine(Array_uint16 *arr, char *pstring, uint32_t indFrom,
+                      uint32_t indTo, uint32_t indent, uint32_t digitPad);
 
 /*
   sprints the array with maximal width = width. Pads the last line to full
   width (aligned).
+ */
+void aui16_sprintToNumWithPad(Array_uint16 *arr, char *pstring,
+                               uint32_t elePerLine, uint32_t indent,
+                               uint32_t digitPad);
+
+/*
+  Take the maximum value of arr for digit pad calculation
  */
 void aui16_sprintToNum(Array_uint16 *arr, char *pstring,
                        uint32_t elePerLine, uint32_t indent);

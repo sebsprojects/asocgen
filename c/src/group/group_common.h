@@ -10,12 +10,8 @@ Group *createFromGen(uint32_t n, Array_uint8 *mtab);
 Group *createCn(uint32_t n);
 Group *createSn(uint32_t n);
 
-// Group *createGLn(uint32_t q, uint32_t n);
 
-/*
-Group *createAn(uint32_t n);
-Group *createDn(uint32_t n);
-Group *createSLn(uint32_t q, uint32_t n);
-*/
+// For testing only
+// uint32_t notfixedImagesToInt(Map_uint16 *perm);
 
 #endif

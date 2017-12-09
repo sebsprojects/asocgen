@@ -2,7 +2,6 @@
 /prof
 /_old
 */bin
-
 .stack-work
 *.prof
 *.out*

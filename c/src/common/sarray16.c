@@ -240,40 +240,34 @@ void aui16_sprintLine(Array_uint16 *arr, char *pstring,
   }
 }
 
-/*
-  [  aaa, bbbb,   cc, dddd,
-    dddd,    e, ffff,       ]
- */
-void aui16_sprintToNum(Array_uint16 *arr, char *pstring,
-                       uint32_t elePerLine, uint32_t indent) {
+void aui16_sprintToNumWithPad(Array_uint16 *arr, char *pstring,
+                               uint32_t elePerLine, uint32_t indent,
+                               uint32_t digitPad) {
   if(arr->size == 0) {
     sprintf(pstring + strlen(pstring), "[   ]");
     return;
   }
   uint32_t n = arr->size;
-  uint16_t max = aui16_getMax(arr);
-  uint32_t maxDigits = max == 0 ? 1 : floor(log10(max)) + 1;
-  uint32_t entrySize = 2 + maxDigits;
   uint32_t numLines = ceil((float) n / elePerLine);
   uint32_t eleInLastLine = n % elePerLine;
+  uint32_t entrySize = 2 + digitPad;
   // first line
   padString(pstring + strlen(pstring), indent); // manual indent b/c "["
   sprintf(pstring + strlen(pstring), "[ ");
-  aui16_sprintLine(arr, pstring, 0, umin(arr->size, elePerLine), 0,
-                   maxDigits);
+  aui16_sprintLine(arr, pstring, 0, umin(arr->size, elePerLine), 0, digitPad);
   uint32_t i;
   // 1 until before last line
   for(i = 1; i < numLines - 1; i++) {
-    sprintf(pstring + strlen(pstring), "\n  ");
-    aui16_sprintLine(arr, pstring, i * elePerLine, (i + 1) *elePerLine,
-                     indent, maxDigits);
+    sprintf(pstring + strlen(pstring), ",\n  ");
+    aui16_sprintLine(arr, pstring, i * elePerLine, (i + 1) * elePerLine,
+                     indent, digitPad);
   }
   // last line
   if(numLines > 1) {
-    sprintf(pstring + strlen(pstring), "\n  ");
+    sprintf(pstring + strlen(pstring), ",\n  ");
     aui16_sprintLine(arr, pstring, (numLines - 1) * elePerLine,
                      umin(arr->size, numLines * elePerLine),
-                     indent, maxDigits);
+                     indent, digitPad);
     if(eleInLastLine > 0) {
       // pads until the end of the line
       padString(pstring, (elePerLine - eleInLastLine) * entrySize);
@@ -282,17 +276,24 @@ void aui16_sprintToNum(Array_uint16 *arr, char *pstring,
   sprintf(pstring + strlen(pstring), " ]");
 }
 
+void aui16_sprintToNum(Array_uint16 *arr, char *pstring,
+                       uint32_t elePerLine, uint32_t indent) {
+  uint16_t max = aui16_getMax(arr);
+  uint32_t digitPad = max == 0 ? 1 : floor(log10(max)) + 1;
+  aui16_sprintToNumWithPad(arr, pstring, elePerLine, indent, digitPad);
+}
+
 void aui16_sprintToWidth(Array_uint16 *arr, char *pstring, uint32_t width,
                        uint32_t indent) {
   uint16_t max = aui16_getMax(arr);
-  uint32_t maxDigits = max == 0 ? 1 : floor(log10(max)) + 1;
-  uint32_t entrySize = 2 + maxDigits;
+  uint32_t digitPad = max == 0 ? 1 : floor(log10(max)) + 1;
+  uint32_t entrySize = 2 + digitPad;
   uint32_t additionalSpace = 2 + 2;
   if(width < indent + additionalSpace + entrySize) { // not enough line wid
     return;
   }
   uint32_t elePerLine = (width - indent - additionalSpace) / entrySize;
-  aui16_sprintToNum(arr, pstring, elePerLine, indent);
+  aui16_sprintToNumWithPad(arr, pstring, elePerLine, indent, digitPad);
 }
 
 void aui16_sprintDefault(Array_uint16 *arr, char *pstring) {
@@ -307,7 +308,7 @@ void aui16_sprintSquare(Array_uint16 *arr, char *pstring, uint32_t indent) {
 void aui16_printToNum(Array_uint16 *arr,uint32_t elePerLine,uint32_t indent) {
   char *pstring = malloc(128 + arr->size * 16); // pretty safe guess I think
   pstring[0] = '\0';
-  aui16_sprintToNum(arr, pstring,  elePerLine, indent);
+  aui16_sprintToNum(arr, pstring, elePerLine, indent);
   printf("%s\n", pstring);
   free(pstring);
 }
@@ -315,7 +316,7 @@ void aui16_printToNum(Array_uint16 *arr,uint32_t elePerLine,uint32_t indent) {
 void aui16_printToWidth(Array_uint16 *arr, uint32_t width, uint32_t indent) {
   char *pstring = malloc(128 + arr->size * 16); // pretty safe guess I think
   pstring[0] = '\0';
-  aui16_sprintToWidth(arr, pstring,  width, indent);
+  aui16_sprintToWidth(arr, pstring, width, indent);
   printf("%s\n", pstring);
   free(pstring);
 }
