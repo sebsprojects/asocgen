@@ -86,7 +86,7 @@ Array_uint16 *getPrimeFactors_alloc(uint16_t n) {
 }
 
 Array_uint16 *getFactors_alloc(uint16_t n) {
-  Array_uint16 *factors = aui16_alloc(n / 2); // *might* be improved
+  Array_uint16 *factors = aui16_alloc(n / 2 + 1); // *might* be improved
   uint32_t i;
   uint32_t c = 0;
   for(i = 1; i <= n; i++) {

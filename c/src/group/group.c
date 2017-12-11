@@ -84,8 +84,7 @@ Map_uint16 *group_orderDist(Group *group) {
     orderi = group_elementOrderi(group, i);
     (*aui16_at(orderCounts, aui16_indexOf(primeFac, orderi)))++;
   }
-  Map_uint16 *map = mapui16_alloc_ref(primeFac->size, 0, primeFac,
-                                      orderCounts);
+  Map_uint16 *map = mapui16_alloc_ref(primeFac->size, 0,primeFac,orderCounts);
   return map;
 }
 
@@ -245,9 +244,6 @@ bool group_hasInvs(Group *group) {
     if(gopi(group, invInd, i) != neuInd) { // check other way
       return 0;
     }
-    if(*aui16_at(group->invs, i) != *aui16_at(group->set, invInd)) {
-      return 0;
-    }
     invInd = 0xffff;
   }
   return 1;
@@ -278,6 +274,6 @@ void group_printSummary(Group *group) {
   printf("  (*) isCommutative   %u\n\n", group_isCommutative(group));
   Map_uint16 *orderMap = group_orderDist(group);
   printf("  (*) order distribution:\n");
-  // TODO
+  mapui16_printToWidth(orderMap, 80, 2);
   mapui16_free(orderMap);
 }

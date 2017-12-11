@@ -31,7 +31,68 @@ void test_print() {
   printTestFoot(ok);
 }
 
+void test_permComp() {
+  printTestHead("map", "perm comp");
+  bool ok = 1;
+  uint32_t n = 3;
+  Map_uint16 *f = mapui16_alloc(n, 1);
+  Map_uint16 *g = mapui16_alloc(n, 1);
+  mapui16_toId(f);
+  mapui16_toId(g);
+  *aui16_at(f->codomain, 0) = 2; // 120
+  *aui16_at(f->codomain, 1) = 1;
+  *aui16_at(f->codomain, 2) = 0;
+  *aui16_at(g->codomain, 0) = 2; // 201
+  *aui16_at(g->codomain, 1) = 0;
+  *aui16_at(g->codomain, 2) = 1;
+  mapui16_printDefault(f);
+  mapui16_printDefault(g);
+  printf("  Compare: %i\n", permutationCompare(&f, &g));
+  mapui16_free(f); mapui16_free(g);
+  printTestFoot(ok);
+}
+
+void test_permSort() {
+  printTestHead("map", "perm sort");
+  bool ok = 1;
+  uint32_t n = 3;
+  uint32_t nfac =  factorial(n);
+  Array_uint16 *perm = aui16_alloc(n);
+  Array_uint16 *domain = aui16_alloc(n);
+  initPerm(perm);
+  initPerm(domain); // not really perm but should be 0 1 2 ... n anyway
+  // Alloc
+  Map_uint16 **mapArray = malloc(sizeof(Map_uint16*) * nfac);
+  Array_uint16 *codomain = 0;
+  uint32_t i;
+  for(i = 0; i < nfac; i++) {
+    codomain = aui16_copy(perm);
+    mapArray[i] = mapui16_alloc_ref(n, 1, domain, codomain);
+    shiftPerm(perm);
+  }
+  // sort
+  int32_t permutationCompare(const void *a, const void *b);
+  qsort(mapArray, nfac, sizeof(Map_uint16*), permutationCompare);
+
+  for(i = 0; i < nfac; i++) {
+    mapui16_printDefault(mapArray[i]);
+    printf("\n");
+  }
+
+  // Free
+  for(i = 0; i < nfac; i++) {
+    aui16_free(mapArray[i]->codomain);
+    mapui16_free_ref(mapArray[i]);
+  }
+  free(mapArray);
+  aui16_free(domain);
+  aui16_free(perm);
+  printTestFoot(ok);
+}
+
 void test_suite_map() {
   test_notfixedpoints();
   test_print();
+  test_permComp();
+  test_permSort();
 }

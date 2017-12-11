@@ -12,6 +12,7 @@ Group *createSn(uint32_t n);
 
 
 // For testing only
-// uint32_t notfixedImagesToInt(Map_uint16 *perm);
+int32_t permutationCompare(const void *a, const void *b);
+uint32_t notfixedImagesToInt(Map_uint16 *perm);
 
 #endif

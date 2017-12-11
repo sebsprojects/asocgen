@@ -121,7 +121,7 @@ int32_t permutationCompare(const void *a, const void *b) {
     return -1;
   }
   if(!mapui16_hasNotfixedPoints(*perm2)) {
-    return -1;
+    return 1;
   }
   uint16_t max1 = mapui16_getMaximalNotfixedImage(*perm1);
   uint16_t max2 = mapui16_getMaximalNotfixedImage(*perm2);

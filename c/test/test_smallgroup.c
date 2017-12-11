@@ -68,8 +68,36 @@ void test_mingen_s4() {
   group_free(s4);
 }
 
+void test_sInS() {
+  printTestHead("group", "s in s");
+  uint32_t n = 6;
+  uint32_t nfac = factorial(n);
+  Group *sn = createSn(n);
+  Group *snm1 = group_alloc(nfac / n, 1);
+  initPerm(snm1->set);
+  uint32_t i, j;
+  for(i = 0; i < group_order(snm1); i++) {
+    for(j = 0; j < group_order(snm1); j++) {
+      *aui16_at(snm1->gtab, get2DIndex(group_order(snm1), i, j)) =
+        *aui16_at(sn->gtab, get2DIndex(group_order(sn), i, j));
+    }
+  }
+  //aui16_printSquare(sn->gtab, 0);
+  //aui16_printSquare(snm1->gtab, 0);
+  printf("Sn-1 has invs: %u\n", group_hasInvs(snm1));
+  if(group_hasNeutral(snm1) && group_hasInvs(snm1)) {
+    group_setInvs(snm1);
+  }
+  group_printSummary(snm1);
+  printf("Is subgroup of Sn: %u\n", group_isSubgroup(sn, snm1));
+  group_free(snm1);
+  group_free(sn);
+  printTestFoot(1);
+}
+
 void test_suite_smallgroup () {
   test_s5();
   test_c102();
   test_mingen_s4();
+  test_sInS();
 }
