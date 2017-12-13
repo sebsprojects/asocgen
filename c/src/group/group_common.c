@@ -38,7 +38,7 @@ Group *createSn(uint32_t n) {
   Array_uint16 *perm = aui16_alloc(n);
   Array_uint16 *domain = aui16_alloc(n);
   initPerm(perm);
-  initPerm(domain); // not really perm but should be 0 1 2 ... n anyway
+  aui16_setToRange(domain, 0, domain->size, 0);
   uint32_t i;
   Group *group = group_alloc(nfac, 1);
   for(i = 0; i < nfac; i++) {
@@ -76,7 +76,6 @@ Group *createSn(uint32_t n) {
     }
   }
   group_setInvs(group);
-
   // Free
   mapui16_free(prod);
   for(i = 0; i < nfac; i++) {

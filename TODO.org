@@ -1,13 +1,13 @@
 #+STARTUP: showall
 
 * Urgent
-** TODO Implement print and sprint for mapui
+** DONE Implement print and sprint for mapui
 
 * Short Term
-** TODO Misc: Make file-names uniform w.r.t. _ and nospace
+** DONE Misc: Make file-names uniform w.r.t. _ and nospace
 
 * Features
-** TODO Group: Implement isomorphism check
+** DONE Group: Implement isomorphism check
 ** TODO Group: Get indexed group (isomorphic)
 ** TODO General: Devise text format for storing group mtabs (incompl / groups)
 
@@ -18,7 +18,6 @@
 ** TODO Shrinkage behavior with memcpy and so on?
 ** TODO Check i-j loops for completely <= vs < thing
 ** TODO Check uint32 vs uint16 vs int32 etc. for loops
-
 ** TODO Think about index -> element gop / map for performance's sake
 
 * Long Term

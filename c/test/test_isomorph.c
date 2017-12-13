@@ -1,0 +1,34 @@
+#include "test.h"
+
+void test_rename() {
+  printTestHead("isomorph", "rename");
+  bool ok = 1;
+  Group *g = createSn(3);
+  Map_uint16 *map = mapui16_alloc(6, 0);
+  mapui16_toId(map);
+  uint32_t i;
+  for(i = 0; i < 6; i++) {
+    *aui16_at(map->codomain, i) = 5 - i;
+  }
+  group_print(g);
+  mapui16_printDefault(map);
+  //
+  Group *h = group_getRenamedCopy_alloc(g, map);
+  group_print(h);
+  GroupHom *hom = group_allocHom_ref(g, h, map);
+  printf("Is valid hom %u\n", group_isValidHom(hom));
+  printf("Is valid iso %u\n", group_isIsomorphism(hom));
+  group_freeHom_ref(hom);
+  Group *x = group_getIndexedCopy_alloc(h);
+  group_print(x);
+  group_free(x);
+  group_free(h);
+  //
+  mapui16_free(map);
+  group_free(g);
+  printTestFoot(ok);
+}
+
+void test_suite_isomorph() {
+  test_rename();
+}

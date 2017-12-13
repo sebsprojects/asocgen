@@ -74,7 +74,7 @@ void test_sInS() {
   uint32_t nfac = factorial(n);
   Group *sn = createSn(n);
   Group *snm1 = group_alloc(nfac / n, 1);
-  initPerm(snm1->set);
+  aui16_setToRange(snm1->set, 0, snm1->set->size, 0);
   uint32_t i, j;
   for(i = 0; i < group_order(snm1); i++) {
     for(j = 0; j < group_order(snm1); j++) {

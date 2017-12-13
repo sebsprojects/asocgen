@@ -11,32 +11,42 @@ struct GroupHom {
 };
 typedef struct GroupHom GroupHom;
 
+
+// --------------------------------------------------------------------------
+// Management
+// --------------------------------------------------------------------------
+
 /*
   For a valid hom, it is required that from->set is (content, order) equal to
   map->domain and map->codomain is a subset of to->set.
 */
-GroupHom *allocGroupHom(Group *from, Group *to, Map_uint16 *map);
-void freeGroupHom(GroupHom *hom);
+GroupHom *group_allocHom_ref(Group *from, Group *to, Map_uint16 *map);
+void group_freeHom_ref(GroupHom *hom);
+
+
+// --------------------------------------------------------------------------
+// Basic Functions
+// --------------------------------------------------------------------------
 
 /*
   Assumes valid groups and valid map
 */
-bool isValidGroupHom(GroupHom *hom);
+bool group_isValidHom(GroupHom *hom);
 
 /*
   Assumes valid groups
 */
-bool hasGroupHomProp(GroupHom *hom);
-bool hasGroupHomPropFromGen(GroupHom *hom,
-                            Array_uint16 *genFrom,
-                            Array_uint16* genTo);
+bool group_hasHomProp(GroupHom *hom);
+bool group_hasHomPropFromGen(GroupHom *hom,
+                             Array_uint16 *genFrom,
+                             Array_uint16* genTo);
 
 /*
   Assumes valid homomorphism
 */
-bool isIsomorphism(GroupHom *hom);
-bool isIsomorphismFromGen(GroupHom *hom,
-                          Array_uint16 *genFrom,
-                          Array_uint16 *genTo);
+bool group_isIsomorphism(GroupHom *hom);
+bool group_isIsomorphismFromGen(GroupHom *hom,
+                                Array_uint16 *genFrom,
+                                Array_uint16 *genTo);
 
 #endif

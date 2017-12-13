@@ -1,7 +1,9 @@
+#include "group.h"
+
 #include <stdlib.h>
 #include <stdio.h>
+#include "group_hom.h"
 
-#include "group.h"
 
 Group *group_alloc(uint16_t order, bool indexed) {
   Group *group = malloc(sizeof(Group));
@@ -30,6 +32,34 @@ void group_setInvs(Group *group) {
       }
     }
   }
+}
+
+bool group_checkIndexed(Group *group) {
+  uint32_t i;
+  for(i = 0; i < group_order(group); i++) {
+    if(*aui16_at(group->set, i) != i) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+Group *group_getIndexedCopy_alloc(Group *group) {
+  Map_uint16 *map = mapui16_alloc(group_order(group), group->indexed);
+  aui16_copyInto(map->domain, group->set);
+  aui16_setToRange(map->codomain, 0, map->codomain->size, 0);
+  Group *copy = group_getRenamedCopy_alloc(group, map);
+  mapui16_free(map);
+  return copy;
+}
+
+Group *group_getRenamedCopy_alloc(Group *group, Map_uint16 *map) {
+  Group *copy = group_alloc(group_order(group), 0);
+  mapui16_mapArray(map, group->set, copy->set);
+  mapui16_mapArray(map, group->gtab, copy->gtab);
+  mapui16_mapArray(map, group->invs, copy->invs);
+  copy->indexed = group_checkIndexed(copy);
+  return copy;
 }
 
 // --------------------------------------------------------------------------
@@ -74,7 +104,7 @@ uint16_t group_elementOrderi(Group *group, uint16_t ind) {
   return ord;
 }
 
-Map_uint16 *group_orderDist(Group *group) {
+Map_uint16 *group_orderDist_alloc(Group *group) {
   uint32_t n = group_order(group);
   Array_uint16 *primeFac = getFactors_alloc(n);
   Array_uint16 *orderCounts = aui16_alloc(primeFac->size);
@@ -272,7 +302,7 @@ void group_printSummary(Group *group) {
   printf("  (*) neutral Element %u\n", group_neutral(group));
   printf("  (*) isCyclic        %u\n", group_isCyclic(group));
   printf("  (*) isCommutative   %u\n\n", group_isCommutative(group));
-  Map_uint16 *orderMap = group_orderDist(group);
+  Map_uint16 *orderMap = group_orderDist_alloc(group);
   printf("  (*) order distribution:\n");
   mapui16_printToWidth(orderMap, 80, 2);
   mapui16_free(orderMap);

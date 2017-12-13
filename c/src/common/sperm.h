@@ -6,18 +6,15 @@
 struct Array_uint16;
 
 
+// --------------------------------------------------------------------------
+// Binomial-like functions to systemtically test combinations of ints
+// --------------------------------------------------------------------------
+
 /*
   Fills the array with 0xffff and fills to id = (0 1 2 3 ... n - 1 0xffff ...)
   before (excluding) index n
  */
 void initBinom(struct Array_uint16 *array, uint16_t n);
-
-
-/*
- * Fills the whole array with id = (0 1 2 3 ... array->size - 1)
- */
-void initPerm(struct Array_uint16 *array);
-
 
 /*
   Shifts the array by one step (if possible) according to the following scheme:
@@ -49,6 +46,17 @@ bool shiftBinom(struct Array_uint16 *array, uint16_t max);
   in array.
  */
 uint32_t binom_getK(struct Array_uint16 *array);
+
+
+// --------------------------------------------------------------------------
+// Permutation-like function
+// --------------------------------------------------------------------------
+
+/*
+ * Fills the whole array with id = (0 1 2 3 ... array->size - 1)
+ */
+void initPerm(struct Array_uint16 *array);
+
 
 /*
   Shifts the array by one step towards the "numerical" maximum value if

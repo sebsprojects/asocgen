@@ -59,8 +59,8 @@ void test_permSort() {
   uint32_t nfac =  factorial(n);
   Array_uint16 *perm = aui16_alloc(n);
   Array_uint16 *domain = aui16_alloc(n);
-  initPerm(perm);
-  initPerm(domain); // not really perm but should be 0 1 2 ... n anyway
+  aui16_setToRange(perm, 0, perm->size, 0);
+  aui16_setToRange(domain, 0, domain->size, 0);
   // Alloc
   Map_uint16 **mapArray = malloc(sizeof(Map_uint16*) * nfac);
   Array_uint16 *codomain = 0;
@@ -90,9 +90,29 @@ void test_permSort() {
   printTestFoot(ok);
 }
 
+void test_mapArray() {
+  printTestHead("map", "array");
+  bool ok = 1;
+  Array_uint16 *array = aui16_alloc5(0, 1, 2, 3, 0);
+  Map_uint16 *map = mapui16_alloc(4, 1);
+  mapui16_toId(map);
+  *aui16_at(map->codomain, 0) = 10;
+  *aui16_at(map->codomain, 1) = 20;
+  *aui16_at(map->codomain, 2) = 30;
+  *aui16_at(map->codomain, 3) = 40;
+  mapui16_printDefault(map);
+  aui16_printDefault(array);
+  mapui16_mapArray(map, array, array);
+  aui16_printDefault(array);
+  mapui16_free(map);
+  aui16_free(array);
+  printTestFoot(ok);
+}
+
 void test_suite_map() {
-  test_notfixedpoints();
-  test_print();
-  test_permComp();
-  test_permSort();
+  //test_notfixedpoints();
+  //test_print();
+  //test_permComp();
+  //test_permSort();
+  test_mapArray();
 }

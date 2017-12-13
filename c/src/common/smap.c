@@ -32,6 +32,14 @@ void mapui16_free_ref(Map_uint16 *map) {
 
 // -------------------------------------------------------------------------
 
+
+void mapui16_mapArray(Map_uint16 *map, Array_uint16 *from, Array_uint16 *to) {
+  uint32_t i;
+  for(i = 0; i < from->size; i++) {
+    *aui16_at(to, i) = mapui16_mapEle(map, *aui16_at(from, i));
+  }
+}
+
 void mapui16_toId(Map_uint16 *map) {
   map->indexed = 1;
   uint16_t i;
@@ -100,10 +108,10 @@ bool mapui16_isInjective(Map_uint16 *map) {
 }
 
 void mapui16_comp_noalloc(Map_uint16 *f, Map_uint16 *g, Map_uint16 *comp,
-                      bool hasDomainSet) {
+                          bool setDomain) {
   uint32_t i;
   for(i = 0; i < g->domain->size; i++) {
-    if(!hasDomainSet) {
+    if(setDomain) {
       *aui16_at(comp->domain, i) = *aui16_at(g->domain, i);
     }
     *aui16_at(comp->codomain, i) = mapui16_mapEle(f, mapui16_mapInd(g, i));

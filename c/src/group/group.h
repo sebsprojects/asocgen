@@ -24,6 +24,11 @@ Group *group_alloc(uint16_t order, bool indexed);
 void group_free(Group *group);
 void group_setInvs(Group *group);
 
+bool group_checkIndexed(Group *group);
+
+Group *group_getIndexedCopy_alloc(Group *group);
+Group *group_getRenamedCopy_alloc(Group *group, Map_uint16 *map);
+
 
 // --------------------------------------------------------------------------
 // Information
@@ -34,7 +39,7 @@ bool group_isCyclic(Group *group);
 
 uint16_t group_elementOrder(Group *group, uint16_t ele);
 uint16_t group_elementOrderi(Group *group, uint16_t ind);
-Map_uint16 *group_orderDist(Group *group);
+Map_uint16 *group_orderDist_alloc(Group *group);
 
 uint16_t group_neutral(Group *group);
 uint16_t group_neutrali(Group *group);

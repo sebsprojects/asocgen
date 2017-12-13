@@ -165,16 +165,16 @@ bool aui16_hasDuplicates(Array_uint16 *array) {
   uint16_t ele;
   for(i = 0; i < array->size; i++) {
     ele = *aui16_at(array, i);
-    for(j = 0; j < array->size; j++) {
+    for(j = 0; j < i; j++) {
       if(j == i) {
         continue;
       }
       if(ele == *aui16_at(array, j)) {
-        return 0;
+        return 1;
       }
     }
   }
-  return 1;
+  return 0;
 }
 
 uint16_t aui16_getMax(Array_uint16 *array) {

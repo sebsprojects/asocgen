@@ -169,6 +169,15 @@ inline void aui16_fill(Array_uint16 *array, uint16_t val) {
   }
 }
 
+// excludes to
+inline void aui16_setToRange(Array_uint16 *array, uint32_t from,
+                             uint32_t to, uint16_t offset) {
+  uint32_t i;
+  for(i = from; i < to; i++) {
+    *aui16_at(array, i) = i + offset;
+  }
+}
+
 // For now: stupid linear search, no error on fail
 inline uint16_t aui16_indexOf(Array_uint16 *array, uint16_t ele) {
   uint32_t i;

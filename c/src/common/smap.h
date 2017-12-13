@@ -37,6 +37,8 @@ void mapui16_free_ref(Map_uint16 *map);
 // MapU
 // --------------------------------------------------------------------------
 
+void mapui16_mapArray(Map_uint16 *map, Array_uint16 *from, Array_uint16 *to);
+
 void mapui16_toId(Map_uint16 *map);
 
 bool mapui16_isValid(Map_uint16 *map);
@@ -44,30 +46,32 @@ bool mapui16_isValid(Map_uint16 *map);
 bool mapui16_areEqual(Map_uint16 *f, Map_uint16 *g);
 
 /*
- * For maps to be composable it is required that
- *   g->codomain is subset of f->domain
- */
+  For maps to be composable it is required that
+  g->codomain is subset of f->domain
+*/
 bool mapui16_areComposable(Map_uint16 *f, Map_uint16 *g);
 
 bool mapui16_isSurjectiveIn(Map_uint16 *map, Array_uint16 *set);
 bool mapui16_isInjective(Map_uint16 *map);
 
 /*
- * g->domain->size must be equal to comp->domain->size to get a valid map
- */
+  g->domain->size must be equal to comp->domain->size to get a valid map
+  If setDomain == 0, then comp->domain will be left untouched
+*/
 void mapui16_comp_noalloc(Map_uint16 *f, Map_uint16 *g, Map_uint16 *comp,
-                          bool hasDomainSet);
+                          bool setDomain);
+
 Map_uint16 *mapui16_comp_alloc(Map_uint16 *f, Map_uint16 *g);
 
 /*
   A notfixed point is a point with x != f(x)
- */
+*/
 bool mapui16_hasNotfixedPoints(Map_uint16 *map);
 
 /*
   If there are no notfixed points (i.e. map is id) then this returns 0 which
   is a wrong result. Always call hasNotfixedPoint beforehand to make sure.
- */
+*/
 uint16_t mapui16_getMaximalNotfixedImage(Map_uint16 *map);
 
 
@@ -86,7 +90,8 @@ uint16_t mapui16_getMaximalNotfixedImage(Map_uint16 *map);
 
   Note that the padding should be the maximum of pad for the domain / codomain
   range to have it nicely aligned.
- */
+*/
+
 void mapui16_sprintLine(Map_uint16 *map, char *pstring, uint32_t indFrom,
                         uint32_t indTo, uint32_t indent, uint32_t digitPad);
 
