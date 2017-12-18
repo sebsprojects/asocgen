@@ -1,17 +1,21 @@
 #+STARTUP: showall
 
 * Urgent
-** DONE Implement print and sprint for mapui
+** TODO group_gen: Make independent of neutral == 0 and improve return value
+** TODO ring: Function to construct Z/pZ
+** TODO ring: write test with Z/pZ
+** TODO ring: quaternion ring implementation
 
 * Short Term
-** DONE Misc: Make file-names uniform w.r.t. _ and nospace
+** TODO ring: polynomial ring approximation
+** TODO ring: poly-mult and poly-division algorithms
+** TODO ring: find irreducible elements/polynomials
 
 * Features
-** DONE Group: Implement isomorphism check
-** TODO Group: Get indexed group (isomorphic)
 ** TODO General: Devise text format for storing group mtabs (incompl / groups)
 
 * Housekeeping
+** TODO Think about usage of 0xffff as "error value" vs 0xffffffff maybe
 ** TODO group_gen: rewrite truncGenSet with array functions
 ** TODO Check if array access in i-j loop can be move outside j-loopy
 ** TODO Adjust for looks with abelian check (hom)

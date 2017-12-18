@@ -6,6 +6,8 @@
 
 /*
   Represents a Ring. If indexed is 1, then set must be id = { 0, 1, ..., n }
+  A valid ring must have a multiplicative identity (1-element).
+  Ring homomorphisms must map multiplicative identities.
  */
 
 struct Ring {
@@ -24,22 +26,30 @@ typedef struct Ring Ring;
 Ring *ring_alloc(uint16_t order, bool indexed);
 void ring_free(Ring *ring);
 
-Group *ring_getAdditiveGroup_alloc();
-Group *ring_getUnitGroup_alloc();
+Group *ring_getAdditiveGroup_alloc(Ring *ring); // free like a normal group
+Group *ring_getAdditiveGroup_ref(Ring *ring); //use ring_freeAdditiveGroup_ref
+void ring_freeAdditiveGroup_ref(Group *group);
+
+Group *ring_getUnitGroup_alloc(Ring *ring);
 
 
 // --------------------------------------------------------------------------
 // Information
 // --------------------------------------------------------------------------
 
-uint16_t ring_zero(Ring *ring); // Crashes if there is no zero
-uint32_t ring_zeroi(Ring *ring);
-uint16_t ring_one(Ring *ring); // Crashes if there is no one
-uint32_t ring_onei(Ring *ring);
+uint16_t ring_zero(Ring *ring);
+uint16_t ring_zeroi(Ring *ring);
+uint16_t ring_one(Ring *ring);
+uint16_t ring_onei(Ring *ring);
 
 bool ring_isCommutative(Ring *ring);
-bool ring_hasOne(Ring *ring);
-bool ring_isUnit(Ring *ring, uint16_t i);
+
+bool ring_isUniti(Ring *ring, uint16_t ind);
+bool ring_isUnit(Ring *ring, uint16_t ele);
+
+bool ring_hasZeroDivisors(Ring *ring);
+bool ring_isIntegralDomain(Ring *ring);
+bool ring_isField(Ring *ring);
 
 
 // --------------------------------------------------------------------------
@@ -47,8 +57,10 @@ bool ring_isUnit(Ring *ring, uint16_t i);
 // --------------------------------------------------------------------------
 
 bool ring_isValid(Ring *ring);
+bool ring_hasOne(Ring *ring);
 bool ring_addIsCommutativeGroup(Ring *ring);
 bool ring_mulIsAssociative(Ring *ring);
+bool ring_isDistributive(Ring *ring);
 
 
 // --------------------------------------------------------------------------
