@@ -218,7 +218,6 @@ Group *group_generateSubgroup_alloc(Group *group, Array_uint16 *set) {
       *aui16_at(subgroup->gtab, get2DIndex(m, j, i)) = gop(group, b, a);
     }
   }
-  group_setInvs(subgroup);
   aui16_free(res);
   return subgroup;
 }

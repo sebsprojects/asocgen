@@ -5,13 +5,12 @@
 
 /*
   Represents a group. If indexed is 1, then set must be id = { 0, 1, ..., n }
-  Invs is a tradeoff between memory usage and comp time
 */
+
 struct Group {
   bool indexed;
   Array_uint16 *set;
   Array_uint16 *gtab;
-  Array_uint16 *invs;
 };
 typedef struct Group Group;
 
@@ -22,7 +21,6 @@ typedef struct Group Group;
 
 Group *group_alloc(uint16_t order, bool indexed);
 void group_free(Group *group);
-void group_setInvs(Group *group);
 
 bool group_checkIndexed(Group *group);
 
@@ -43,6 +41,9 @@ Map_uint16 *group_orderDist_alloc(Group *group);
 
 uint16_t group_neutral(Group *group);
 uint16_t group_neutrali(Group *group);
+
+uint16_t group_inv(Group *group, uint16_t ele);
+uint16_t group_invi(Group *group, uint16_t ind);
 
 
 // --------------------------------------------------------------------------
@@ -85,18 +86,6 @@ void group_print(Group *group);
 
 inline uint16_t group_order(Group *group) {
   return group->set->size;
-}
-
-inline uint16_t group_inv(Group *group, uint16_t ele) {
-  uint16_t ind = ele;
-  if(!group->indexed) {
-    ind = aui16_indexOf(group->set, ele);
-  }
-  return *aui16_at(group->invs, ind);
-}
-
-inline uint16_t group_invi(Group *group, uint16_t ind) {
-  return *aui16_at(group->invs, ind);
 }
 
 // ele * ele -> ele

@@ -10,28 +10,13 @@ Group *group_alloc(uint16_t order, bool indexed) {
   group->indexed = indexed;
   group->set = aui16_alloc(order);
   group->gtab = aui16_alloc(order * order);
-  group->invs = aui16_alloc(order);
   return group;
 }
 
 void group_free(Group *group) {
-  aui16_free(group->invs);
   aui16_free(group->gtab);
   aui16_free(group->set);
   free(group);
-}
-
-void group_setInvs(Group *group) {
-  uint16_t i, j;
-  uint16_t n = group_order(group);
-  for(i = 0; i < n; i++) {
-    for(j = 0; j < n; j++) {
-      if(gopi(group, i, j) == 0) {
-        *aui16_at(group->invs, i) = *aui16_at(group->set, j);
-        break;
-      }
-    }
-  }
 }
 
 bool group_checkIndexed(Group *group) {
@@ -57,7 +42,6 @@ Group *group_getRenamedCopy_alloc(Group *group, Map_uint16 *map) {
   Group *copy = group_alloc(group_order(group), 0);
   mapui16_mapArray(map, group->set, copy->set);
   mapui16_mapArray(map, group->gtab, copy->gtab);
-  mapui16_mapArray(map, group->invs, copy->invs);
   copy->indexed = group_checkIndexed(copy);
   return copy;
 }
@@ -134,6 +118,27 @@ uint16_t group_neutrali(Group *group) {
   return neutralInd;
 }
 
+
+uint16_t group_invi(Group *group, uint16_t ind) {
+  uint32_t n = group_order(group);
+  uint16_t neuInd = group_neutrali(group);
+  uint32_t i;
+  for(i = 0; i < n; i++) {
+    if(gopi(group, ind, i) == neuInd) {
+      return i;
+    }
+  }
+  return 0xffff;
+}
+
+uint16_t group_inv(Group *group, uint16_t ele) {
+  uint16_t ind = ele;
+  if(!group->indexed) {
+    ind = aui16_indexOf(group->set, ele);
+  }
+  return *aui16_at(group->set, group_invi(group, ind));
+}
+
 // --------------------------------------------------------------------------
 
 uint16_t group_conjEle(Group* group, uint16_t toConj, uint16_t a) {
@@ -191,11 +196,10 @@ bool group_isNormalSubgroup(Group *group, Group *subgroup) {
 // --------------------------------------------------------------------------
 
 bool group_isValid(Group *group) {
-  if(!group_hasValidOp(group)) return 0;
-  if(!group_isAsoc(group)) return 0;
-  if(!group_hasNeutral(group)) return 0;
-  if(!group_hasInvs(group)) return 0;
-  return 1;
+  return group_hasValidOp(group) &&
+    group_isAsoc(group) &&
+    group_hasNeutral(group) &&
+    group_hasInvs(group);
 }
 
 bool group_hasValidOp(Group *group) {
@@ -258,23 +262,13 @@ bool group_hasNeutral(Group *group) {
 
 bool group_hasInvs(Group *group) {
   uint32_t n = group_order(group);
-  uint32_t i, j;
-  uint16_t invInd = 0xffff;
   uint16_t neuInd = group_neutrali(group);
+  uint32_t i, invInd;
   for(i = 0; i < n; i++) {
-    for(j = 0; j < n; j++) { // find inv candidate
-      if(gopi(group, i, j) == neuInd) {
-        invInd = j;
-        break;
-      }
-    }
-    if(invInd >= n) { // valid index?
+    invInd = group_invi(group, i);
+    if(gopi(group, invInd, i) != neuInd || gopi(group, i, invInd) != neuInd) {
       return 0;
     }
-    if(gopi(group, invInd, i) != neuInd) { // check other way
-      return 0;
-    }
-    invInd = 0xffff;
   }
   return 1;
 }

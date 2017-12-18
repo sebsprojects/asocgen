@@ -166,9 +166,6 @@ bool aui16_hasDuplicates(Array_uint16 *array) {
   for(i = 0; i < array->size; i++) {
     ele = *aui16_at(array, i);
     for(j = 0; j < i; j++) {
-      if(j == i) {
-        continue;
-      }
       if(ele == *aui16_at(array, j)) {
         return 1;
       }

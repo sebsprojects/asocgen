@@ -68,9 +68,26 @@ void test_equalsets() {
   aui16_free(a2); aui16_free(a1);
 }
 
+void test_duplicates() {
+    printTestHead("array16", "duplicates");
+    bool ok = 1;
+    Array_uint16 *a1 = aui16_alloc5(0, 1, 2, 3, 4);
+    Array_uint16 *a2 = aui16_alloc5(0, 0, 2, 3, 4);
+    Array_uint16 *a3 = aui16_alloc5(0, 1, 2, 3, 0);
+    Array_uint16 *a4 = aui16_alloc5(0, 1, 2, 4, 4);
+    ok &= !aui16_hasDuplicates(a1);
+    ok &= aui16_hasDuplicates(a2);
+    ok &= aui16_hasDuplicates(a3);
+    ok &= aui16_hasDuplicates(a4);
+    aui16_free(a4); aui16_free(a3);
+    aui16_free(a2); aui16_free(a1);
+    printTestFoot(ok);
+}
+
 void test_suite_array() {
   test_basic_sort();
   test_partial_sort();
   test_subset();
   test_equalsets();
+  test_duplicates();
 }

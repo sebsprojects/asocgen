@@ -9,7 +9,6 @@ Group *createFromGen(uint32_t n, Array_uint8 *gtab) {
   for(i = 0; i < n * n; i++) {
     *aui16_at(group->gtab, i) = *aui8_at(gtab, i);
   }
-  group_setInvs(group);
   return group;
 }
 
@@ -22,7 +21,6 @@ Group *createCn(uint32_t n) {
       *aui16_at(group->gtab, get2DIndex(n, i, j)) = (i + j) % n;
       *aui16_at(group->gtab, get2DIndex(n, j, i)) = (j + i) % n;
     }
-    *aui16_at(group->invs, i) = (n - i) % n;
   }
   return group;
 }
@@ -75,7 +73,6 @@ Group *createSn(uint32_t n) {
       }
     }
   }
-  group_setInvs(group);
   // Free
   mapui16_free(prod);
   for(i = 0; i < nfac; i++) {

@@ -85,9 +85,6 @@ void test_sInS() {
   //aui16_printSquare(sn->gtab, 0);
   //aui16_printSquare(snm1->gtab, 0);
   printf("Sn-1 has invs: %u\n", group_hasInvs(snm1));
-  if(group_hasNeutral(snm1) && group_hasInvs(snm1)) {
-    group_setInvs(snm1);
-  }
   group_printSummary(snm1);
   printf("Is subgroup of Sn: %u\n", group_isSubgroup(sn, snm1));
   group_free(snm1);
