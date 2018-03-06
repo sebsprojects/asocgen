@@ -5,5 +5,6 @@
 .stack-work
 *.prof
 *.out*
+.#*
 prof.txt
 vgcore*
