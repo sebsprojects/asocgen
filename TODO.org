@@ -5,6 +5,7 @@
 ** TODO ring: Function to construct Z/pZ
 ** TODO ring: write test with Z/pZ
 ** TODO ring: quaternion ring implementation
+** TODO common: change sort to have end excluded
 
 * Short Term
 ** TODO ring: polynomial ring approximation
