@@ -83,7 +83,7 @@ void switchElements(Array_uint16 *array, uint32_t ind1, uint32_t ind2) {
 }
 
 bool perm_shiftDefault(Array_uint16 *array) {
-  return perm_shift(array, 0, array->si
+  return perm_shift(array, 0, array->size);
 }
 
 bool perm_shift(Array_uint16 *array, uint16_t from, uint16_t to) {

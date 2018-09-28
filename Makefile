@@ -1,28 +1,18 @@
 CC = gcc
-CC_FLAGS = -Wall -O3 -DBOUNDS_CHECK
-LN_FLAGS = -lm
+CC_FLAGS = -Wall -O3
+LN_FLAGS = -lm -L../elfclib/bin -lelfc
 
 # ----------------------------------------------------------------------------
 
-# Profiling
-ifneq "$(findstring prf, $(MAKECMDGOALS))" ""
-CC_FLAGS = -Wall -O3 -pg -no-pie
-LN_FLAGS = -pg -lm -no-pie
-endif
-
-# Optimal
-ifneq "$(findstring opt, $(MAKECMDGOALS))" ""
-CC_FLAGS = -Wall -O3 -DSTRUCT_HACK
-LN_FLAGS = -lm
-endif
-
 # Testing
 ifneq "$(findstring test, $(MAKECMDGOALS))" ""
-CC_FLAGS = -Wall -O3 -DBOUNDS_CHECK
-LN_FLAGS = -lm
 SRC_FILES = $(wildcard test/test.c)
 else
 SRC_FILES = $(wildcard src/*.c)
+endif
+
+ifeq ($(BOUNDS_CHECK), 1)
+CC_FLAGS += -DBOUNDS_CHECK
 endif
 
 # ----------------------------------------------------------------------------

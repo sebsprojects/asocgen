@@ -180,7 +180,7 @@ inline void aui16_setToRange(Array_uint16 *array, uint32_t from,
 
 // For now: stupid linear search, no error on fail
 inline uint16_t aui16_indexOf(Array_uint16 *array, uint16_t ele) {
-  uint32_t i;
+    uint32_t i;
   for(i = 0; i < array->size; i++) {
     if(*aui16_at(array, i) == ele) return i;
   }
