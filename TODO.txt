@@ -1,5 +1,3 @@
-#+STARTUP: showall
-
 * Urgent
 ** TODO group_gen: Make independent of neutral == 0 and improve return value
 ** TODO ring: Function to construct Z/pZ

@@ -1,67 +1,67 @@
 #include "group_gen.h"
 
+#include <elfc_perm.h>
+
+// --------------------------------------------------------------------------
+// Generating from group elements
+// --------------------------------------------------------------------------
 
 /*
-  input res and util can have abitrary content
-
-  util contains indices in random order, filled from the start
-  res  contains elements stored at their index, rest is 0xfffff
-
-  while number of ele in res has changed:
-    compute all possible products
-    store new element(s) in res, new indice(s) in util
-
+ * input res and util can have abitrary content
+ *
+ * util contains indices in random order, filled from the start
+ * res  contains elements stored at their index, rest is 0xfffff
+ *
+ * while number of ele in res has changed:
+ *  compute all possible products
+ * store new element(s) in res, new indice(s) in util
+ *
  */
 void group_generateFrom_noalloc(Group *group,
-                                Array_uint16 *set,    // set to generate from
-                                Array_uint16 *res,    // result
-                                Array_uint16 *util)   // incremental fill
+                                Vecu16 *set,    // set to generate from
+                                Vecu16 *res,    // result
+                                Vecu16 *util)   // incremental fill
 {
-  bool commutative = group_isCommutative(group);
-#ifdef BOUNDS_CHECK
-  uint32_t n = group_order(group);
-  if(n != res->size || n != util->size) {
-    printError("error: generateFrom_noalloc size mismatch");
-    exit(1);
+  vecu16_fill(res, 0xffff);
+  // fill util with the inds of elements in set, copy elements from set to res
+  u16 ele;
+  u32 ind = -1;
+  i32 num = 0;
+  for(i32 i = 0; i < set->size; i++) {
+    ele = *vecu16_at(set, i);
+    if(ele == 0xffff) {
+      break;
+    }
+    num++;
+    vecu16_indexOf(group->set, ele, &ind, 0);
+    *vecu16_at(res, ind) = ele;
+    *vecu16_at(util, i) = ind;
   }
-#endif
-  uint32_t i, j;
-  uint16_t ind, ele;
-  uint32_t filled = 0;
-  aui16_fill(res, 0xffff); // clear res
-  //aui16_fill(util, 0xffff); NOT NECESSARY
-  for(i = 0; i < set->size; i++) {
-    ele = *aui16_at(set, i);
-    if(ele == 0xffff) break;    // accept 0xffff as stop marker
-    filled++;
-    ind = aui16_indexOf(group->set, ele);
-    *aui16_at(res, ind) = ele; // set res[index(ele)] = ele
-    *aui16_at(util, i) = ind;  // set utl[i] = ele
-  }
-  uint32_t prevFilled = 0;
-
-  uint16_t a, b;
-  while(filled != prevFilled) {
-    prevFilled = filled;
-    for(i = 0; i < filled; i++) {
-      for(j = 0; j <= i; j++) {
-        a = *aui16_at(util, i);
-        b = *aui16_at(util, j);
-        ind = gopi(group, a, b);
-        ele = *aui16_at(group->set, ind);
-        if(*aui16_at(res, ind) == 0xffff) {
-          *aui16_at(res, ind) = ele;
-          *aui16_at(util, filled) = ind;
-          filled++;
+  i32 prevNum = 0;
+  u16 a, b, ci;
+  bool com = group_isCommutative(group);
+  // Calculate the product of all elements in util with each other and check
+  // if we got any new. If yes, repeat, if not we are done
+  while(prevNum != num) {
+    prevNum = num;
+    for(i32 i = 0; i < num; i++) {
+      a = *vecu16_at(util, i);
+      for(i32 j = 0; j < num; j++) {
+        b = *vecu16_at(util, j);
+        ci = group_opi(group, a, b);
+        if(*vecu16_at(res, ci) == 0xffff) { // is this prod new in res?
+          ele = *vecu16_at(group->set, ci);
+          *vecu16_at(res, ci) = ele;
+          *vecu16_at(util, num) = ci;
+          num++;
         }
-        // TODO HELP BRANCH PREDICT AND PUT OUTSIDE LOOP
-        if(!commutative) {
-          ind = gopi(group, b, a);
-          ele = *aui16_at(group->set, ind);
-          if(*aui16_at(res, ind) == 0xffff) {
-            *aui16_at(res, ind) = ele;
-            *aui16_at(util, filled) = ind;
-            filled++;
+        if(!com) {
+          ci = group_opi(group, b, a);
+          if(*vecu16_at(res, ci) == 0xffff) {
+            ele = *vecu16_at(group->set, ci);
+            *vecu16_at(res, ci) = ele;
+            *vecu16_at(util, num) = ci;
+            num++;
           }
         }
       }
@@ -69,26 +69,163 @@ void group_generateFrom_noalloc(Group *group,
   }
 }
 
-Array_uint16 *group_generateFrom_alloc(Group *group, Array_uint16 *set) {
-  Array_uint16 *res = aui16_alloc(group_order(group));
-  Array_uint16 *util = aui16_alloc(group_order(group));
+Vecu16 *group_generateFrom_alloc(Group *group, Vecu16 *set) {
+  u16 n = group_order(group);
+  Vecu16* res = vecu16_alloc(n);
+  Vecu16* util = vecu16_alloc(n);
   group_generateFrom_noalloc(group, set, res, util);
-  aui16_free(util);
+  vecu16_free(util);
   return res;
 }
 
-void group_truncGeneratedSet(Array_uint16 *res, bool shrink) {
-  uint32_t i, j;
-  uint16_t *a, *b;
-  uint16_t last = 0;
-  for(i = 0; i < res->size; i++) {
-    a = aui16_at(res, i);
+
+// --------------------------------------------------------------------------
+// Generating sets of groups
+// --------------------------------------------------------------------------
+
+inline void initGenSetFromBinom(Group *group,
+                                Vecu16 *binom,
+                                Vecu16 *res,
+                                u32 pn)
+{
+  for(i32 i = 0; i < pn; i++) {
+    *vecu16_at(res, i) = *vecu16_at(group->set, *vecu16_at(binom, i));
+  }
+}
+
+// This just does !vecu16_contains(set, 0xffff) but in reverse order since
+// we know the first 0xffff will always be at the end of all other entries
+inline bool isCompleteGen(Vecu16 *set)
+{
+  for(i32 i = set->size - 1; i >= 0; i--) {
+    if(*vecu16_at(set, i) == 0xffff) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+bool group_generatingSet(Group *group,
+                         Vecu16 *res,
+                         Vecu16 *binom,
+                         Vecu16 *util1,
+                         Vecu16 *util2,
+                         u32 pn)
+{
+  u32 n = group_order(group);
+  vecu16_fill(res, 0xffff);
+  bool genComplete = 0;
+  bool binomPossible = 1;
+  while(!genComplete && binomPossible) {
+    initGenSetFromBinom(group, binom, res, pn);
+    // here util1 = res of the generation
+    group_generateFrom_noalloc(group, res, util1, util2);
+    binomPossible = binom_shift(binom, n - 1, pn, 0);
+    // this checks if all elements in group->set were produced by the
+    // generating set. If so, we found a generating set for the whole group
+    // and not a proper subgroup
+    genComplete = isCompleteGen(util1);
+  }
+  if(!genComplete) {
+    vecu16_fill(res, 0xffff);
+  }
+  return binomPossible;
+}
+
+bool group_minGeneratingSet_noalloc(Group *group,
+                                    Vecu16 *res,
+                                    Vecu16 *binom,
+                                    Vecu16 *util1,
+                                    Vecu16 *util2)
+{
+  u32 n = group_order(group);
+  u32 pn = n;
+  vecu16_indexOf(binom, 0xffff, &pn, 0);
+  bool binomPossible = 1;
+  bool genComplete = 0;
+  // iterate over all possible pns starting from pn
+  for(i32 i = pn; i <= n; i++) {
+    while(!genComplete && binomPossible) {
+      binomPossible = group_generatingSet(group, res, binom, util1, util2, i);
+      // initGenSetFromBinom guarantees that the first element in res is
+      // always no 0xffff if a generating set was found
+      genComplete = *vecu16_at(res, 0) != 0xffff;
+    }
+    // if we are not already at i = n, increase the pn by one
+    // do this even if genComplete == 1, since the current binom was used up
+    if(!binomPossible && i < n) {
+      binom_init(binom, 0, i + 1, 0);
+      binomPossible = 1;
+    }
+    if(genComplete) {
+      return binomPossible;
+    }
+  }
+  // This should never occur since the whole group->set is always a generating
+  // set
+  // TODO: Somehow produce and error here?
+  if(!genComplete) {
+    vecu16_fill(res, 0xffff);
+  }
+  return binomPossible;
+}
+
+Vecu16 *group_minGeneratingSet_alloc(Group *group)
+{
+  u32 n = group_order(group);
+  Vecu16 *res = vecu16_alloc(n);
+  Vecu16 *binom = vecu16_alloc(n);
+  Vecu16 *util1 = vecu16_alloc(n);
+  Vecu16 *util2 = vecu16_alloc(n);
+  binom_init(binom, 0, 1, 0);
+  group_minGeneratingSet_noalloc(group, res, binom, util1, util2);
+  vecu16_free(util2);
+  vecu16_free(util1);
+  vecu16_free(binom);
+  return res;
+}
+
+
+// --------------------------------------------------------------------------
+// Generating a subgroup from elements
+// --------------------------------------------------------------------------
+
+Group *group_generateSubgroup_alloc(Group *group, Vecu16 *set)
+{
+  Vecu16 *res = group_generateFrom_alloc(group, set);
+  group_truncGeneratedSet(res, 1);
+  u32 m = res->size;
+  Group *subgroup = group_alloc(m, 0);
+  vecu16_copyInto(subgroup->set, res);
+  u16 a, b;
+  for(i32 i = 0; i < m; i++) {
+    a = *vecu16_at(res, i);
+    for(i32 j = 0; j < m; j++) {
+      b = *vecu16_at(res, j);
+      *vecu16_at(subgroup->gtab, get2DIndex(m, i, j)) = group_op(group, a, b);
+      *vecu16_at(subgroup->gtab, get2DIndex(m, j, i)) = group_op(group, b, a);
+    }
+  }
+  vecu16_free(res);
+  return subgroup;
+}
+
+
+// --------------------------------------------------------------------------
+// Utility
+// --------------------------------------------------------------------------
+
+void group_truncGeneratedSet(Vecu16 *res, bool shrink) {
+  u16 *a, *b;
+  u16 last = 0;
+  for(i32 i = 0; i < res->size; i++) {
+    a = vecu16_at(res, i);
     if(*a != 0xffff) { // if element is not 0xffff nothing is to be done
       last = i;
       continue;
     }
-    for(j = i + 1; j < res->size; j++) { // find the next element != to 0xffff
-      b = aui16_at(res, j);
+    for(i32 j = i + 1; j < res->size; j++) { // find next element != to 0xffff
+      b = vecu16_at(res, j);
       if(*b == 0xffff) {
         continue;
       } else { // found one, set a to b and clear b
@@ -100,124 +237,6 @@ void group_truncGeneratedSet(Array_uint16 *res, bool shrink) {
     }
   }
   if(shrink) {
-    aui16_shrink(res, last + 1);
+    vecu16_resize(res, last + 1);
   }
-}
-
-/*
-  Checks if 0xffff is not contained in the array
- */
-inline bool isComplete(Array_uint16 *set) {
-  int32_t i;
-  for(i = set->size - 1; i >= 0; i--) {
-    if(*aui16_at(set, i) == 0xffff) return 0;
-  }
-  return 1;
-}
-
-/*
-  Set indices in set according to the permutation supplied
- */
-inline void initFromBinom(Group *group, Array_uint16 *binom,Array_uint16 *set,
-                         uint32_t pn) {
-  uint32_t i;
-  for(i = 0; i < pn; i++) {
-    *aui16_at(set, i) = *aui16_at(group->set, *aui16_at(binom, i));
-  }
-}
-
-bool group_generatingSet(Group *group,
-                         Array_uint16 *res,
-                         Array_uint16 *binom,
-                         Array_uint16 *util1,
-                         Array_uint16 *util2,
-                         uint32_t pn)
-{
-  uint32_t n = group_order(group);
-#ifdef BOUNDS_CHECK
-  if(res->size != n || binom->size != n ||
-     util1->size != n || util2->size != n) {
-    printError("error: minGeneratingSet_noalloc size mismatch");
-    exit(1);
-  }
-#endif
-  aui16_fill(res, 0xffff); // prep set to generate from
-  bool compl = 0;
-  bool binomPossible = 1;
-  while(!compl && binomPossible) {
-    initFromBinom(group, binom, res, pn);
-    group_generateFrom_noalloc(group, res, util1, util2);
-    binomPossible = binom_shiftDefault(binom, n - 1);
-    compl = isComplete(util1);
-  }
-  if(!compl) {
-    aui16_fill(res, 0xffff);
-  }
-  return binomPossible;
-}
-
-bool group_minGeneratingSet_noalloc(Group *group,
-                                    Array_uint16 *res,
-                                    Array_uint16 *binom,
-                                    Array_uint16 *util1,
-                                    Array_uint16 *util2)
-{
-  uint32_t i;
-  uint32_t n = group_order(group);
-  uint32_t pn = 0; // pn-subsets as start, determined in the following
-  for(i = 0; i < n; i++) {
-    if(*aui16_at(binom, i) != 0xffff) pn++;
-  }
-  bool binomPossible = 1;
-  bool compl = 0;
-  for(i = pn; i <= n; i++) {
-    while(binomPossible && !compl) {
-      binomPossible = group_generatingSet(group, res, binom, util1, util2, i);
-      compl = *aui16_at(res, 0) != 0xffff; // 1-ele is always there at ind=0
-    }
-    if(!binomPossible && i < n) { // go to pn + 1
-      binom_init(binom, i + 1); // initialize the pn + 1 binom
-      binomPossible = 1;
-    }
-    if(compl) return binomPossible;
-  }
-  if(!compl) aui16_fill(res, 0xffff);
-  return binomPossible;
-}
-
-Array_uint16 *group_minGeneratingSet_alloc(Group *group) {
-  uint32_t n = group_order(group);
-  Array_uint16 *res = aui16_alloc(n);
-  Array_uint16 *binom = aui16_alloc(n);
-  Array_uint16 *util1 = aui16_alloc(n);
-  Array_uint16 *util2 = aui16_alloc(n);
-  binom_init(binom, 1);
-  group_minGeneratingSet_noalloc(group, res, binom, util1, util2);
-  aui16_free(binom);
-  aui16_free(util1);
-  aui16_free(util2);
-  return res;
-}
-
-Group *group_generateSubgroup_alloc(Group *group, Array_uint16 *set) {
-  Array_uint16 *res = group_generateFrom_alloc(group, set);
-  group_truncGeneratedSet(res, 1);
-  uint32_t m = res->size;    // Subgroup order
-  Group *subgroup = group_alloc(m, 0);
-  uint32_t i, j;
-  uint16_t a, b;
-  for(i = 0; i < m; i++) {
-    a = *aui16_at(res, i);
-    *aui16_at(subgroup->set, i) = a;
-  }
-  for(i = 0; i < m; i++) {
-    a = *aui16_at(res, i);
-    for(j = 0; j <= i; j++) {
-      b = *aui16_at(res, j);
-      *aui16_at(subgroup->gtab, get2DIndex(m, i, j)) = gop(group, a, b);
-      *aui16_at(subgroup->gtab, get2DIndex(m, j, i)) = gop(group, b, a);
-    }
-  }
-  aui16_free(res);
-  return subgroup;
 }

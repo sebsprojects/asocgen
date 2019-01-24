@@ -1,5 +1,5 @@
 CC = gcc
-CC_FLAGS = -Wall -O3
+CC_FLAGS = -Wall -O3 -std=c99 -I../elfclib/include
 LN_FLAGS = -lm -L../elfclib/bin -lelfc
 
 # ----------------------------------------------------------------------------
@@ -30,15 +30,13 @@ BIN = ./bin/asoc
 TEST = ./bin/testasoc
 
 all: $(BIN)
-prf: $(BIN)
-opt: $(BIN)
 test: $(TEST)
 
 $(BIN): $(OBJ_FILES)
-	$(CC) $(LN_FLAGS) $^ -o $@
+	$(CC) $^ $(LN_FLAGS) -o $@
 
 $(TEST): $(OBJ_FILES)
-	$(CC) $(LN_FLAGS) $^ -o $@
+	$(CC) $^ $(LN_FLAGS) -o $@
 
 -include $(DEP_FILES)
 
@@ -50,17 +48,17 @@ bin/%.o: test/%.c
 bin/%.o: src/%.c
 	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
 
-bin/%.o: src/gen/%.c
-	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
+#bin/%.o: src/gen/%.c
+#	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
 
-bin/%.o: src/common/%.c
-	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
+#bin/%.o: src/common/%.c
+#	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
 
 bin/%.o: src/group/%.c
 	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
 
-bin/%.o: src/ring/%.c
-	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
+#bin/%.o: src/ring/%.c
+#	$(CC) $(CC_FLAGS) $(INCLUDES) -MMD -c $< -o $@
 
 clean:
 	-rm ./bin/*
