@@ -1,6 +1,10 @@
 #include "group_hom.h"
 
+#include <elfc_vecptr.h>
+
 #include <stdlib.h>
+
+#include "group_gen.h"
 
 
 // ---------------------------------------------------------------------------
@@ -89,4 +93,49 @@ bool group_hasHomPropFromGen(GroupHom *hom, Vecu16 *genFrom)
     }
   }
   return 1;
+}
+
+/*
+ * We have h(g) = y for g in a generating set and need to find
+ * h(x) for any x in hom->from
+ */
+void group_completeHomFromGen(GroupHom *hom)
+{
+  u32 n = group_order(hom->from);
+  Vecu16 *genSet = vecu16_alloc(n);
+  u16 ele;
+  u32 num = 0;
+  for(i32 i = 0; i < hom->map->domain->size; i++) {
+    ele = *vecu16_at(hom->map->domain, i);
+    if(ele != 0xffff) {
+      *vecu16_at(genSet, num) = ele;
+      num++;
+    }
+  }
+  vecu16_resize(genSet, num);
+  u16 x, g, mappedProd;
+  Vecptr *genDecompVec = vecptr_alloc(n);
+  for(i32 i = 0; i < n; i++) {
+    *vecptr_at(genDecompVec, i) = vecu16_alloc(genSet->size * n);
+  }
+  group_genDecomposition(hom->from, genSet, genDecompVec);
+  Vecu16 *genDecomp = 0;
+  for(i32 i = 0; i < n; i++) {
+    mappedProd = *vecu16_at(genDecomp, 0);
+    for(i32 j = 1; j < genDecomp->size; j++) {
+      g = *vecu16_at(genDecomp, j);
+      if(g == 0xffff) { // end of decomp is reached
+        break;
+      }
+      mappedProd = group_op(hom->to, mappedProd,
+                            mapu16_mapEle(hom->map, g));
+    }
+    *vecu16_at(hom->map->domain, i) = x;
+    *vecu16_at(hom->map->codomain, i) = mappedProd;
+  }
+  for(i32 i = 0; i < n; i++) {
+    vecu16_free(*vecptr_at(genDecompVec, i));
+  }
+  vecptr_free(genDecompVec);
+  vecu16_free(genSet);
 }

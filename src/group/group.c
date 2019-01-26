@@ -39,7 +39,7 @@ bool group_checkIndexed(Group *group)
 Group *group_getIndexedCopy_alloc(Group *group)
 {
   Mapu16 *map = mapu16_alloc(group_order(group), group->indexed);
-  vecu16_copyInto(map->domain, group->set);
+  vecu16_copyInto(group->set, map->domain, 0);
   vecu16_setToRange(map->codomain, 0, map->codomain->size, 0);
   Group *copy = group_getRenamedCopy_alloc(group, map);
   mapu16_free(map);

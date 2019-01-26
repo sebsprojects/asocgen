@@ -38,31 +38,22 @@ void group_generateFrom_noalloc(Group *group,
     *vecu16_at(util, i) = ind;
   }
   i32 prevNum = 0;
-  u16 a, b, ci;
-  bool com = group_isCommutative(group);
+  u16 a, b, c;
   // Calculate the product of all elements in util with each other and check
   // if we got any new. If yes, repeat, if not we are done
   while(prevNum != num) {
     prevNum = num;
     for(i32 i = 0; i < num; i++) {
       a = *vecu16_at(util, i);
-      for(i32 j = 0; j < num; j++) {
+      i32 startJ = group_isCommutative(group) ? i : 0;
+      for(i32 j = startJ; j < num; j++) {
         b = *vecu16_at(util, j);
-        ci = group_opi(group, a, b);
-        if(*vecu16_at(res, ci) == 0xffff) { // is this prod new in res?
-          ele = *vecu16_at(group->set, ci);
-          *vecu16_at(res, ci) = ele;
-          *vecu16_at(util, num) = ci;
+        c = group_opi(group, a, b);
+        if(*vecu16_at(res, c) == 0xffff) { // is this prod new in res?
+          ele = *vecu16_at(group->set, c);
+          *vecu16_at(res, c) = ele;
+          *vecu16_at(util, num) = c;
           num++;
-        }
-        if(!com) {
-          ci = group_opi(group, b, a);
-          if(*vecu16_at(res, ci) == 0xffff) {
-            ele = *vecu16_at(group->set, ci);
-            *vecu16_at(res, ci) = ele;
-            *vecu16_at(util, num) = ci;
-            num++;
-          }
         }
       }
     }
@@ -76,6 +67,70 @@ Vecu16 *group_generateFrom_alloc(Group *group, Vecu16 *set) {
   group_generateFrom_noalloc(group, set, res, util);
   vecu16_free(util);
   return res;
+}
+
+/*
+ * This function works in priciple like group_generateFrom_noalloc but
+ * keeps track of how the elements were reached in genDecomp.
+ * We do not need a res array as we know that res = group->set since
+ * genSet is a generating set of the group
+ */
+void group_genDecomposition(Group *group,
+                            Vecu16 *genSet,     // gen set of group
+                            Vecptr *genDecomp)  // result
+{
+  // fill all vecu16s in genDecomp with 0xffff
+  Vecu16 *decomp = 0;
+  for(i32 i = 0; i < genDecomp->size; i++) {
+    decomp = *vecptr_at(genDecomp, i);
+    vecu16_fill(decomp, 0xffff);
+  }
+  u32 n = group_order(group);
+  Vecu16 *util = vecu16_alloc(n);
+  u16 ele;
+  i32 num = 0;
+  for(i32 i = 0; i < genSet->size; i++) {
+    ele = *vecu16_at(genSet, i);
+    if(ele == 0xffff) {
+      break;
+    }
+    num++;
+    u32 ind = -1;
+    vecu16_indexOf(group->set, ele, &ind, 0);
+    *vecu16_at(util, i) = ind;
+    // Set the decompositions of the generating elements (trivial)
+    decomp = *vecptr_at(genDecomp, ind);
+    *vecu16_at(decomp, 0) = ele;
+  }
+  i32 prevNum = 0;
+  u16 a, b, c;
+  while(prevNum != num) {
+    prevNum = num;
+    // generating from all elements in gendEleInds
+    for(i32 i = 0; i < num; i++) {
+      a = *vecu16_at(util, i);
+      i32 startJ = group_isCommutative(group) ? i : 0;
+      for(i32 j = startJ; j < num; j++) {
+        b = *vecu16_at(util, j);
+        c = group_opi(group, a, b); // compute a * b
+        if(!vecu16_contains(util, c, 0)) { // is this prod new in util?
+          ele = *vecu16_at(group->set, c);
+          *vecu16_at(util, num) = c;
+          // get the (already known decomps of a and b)
+          Vecu16 *decompA = *vecptr_at(genDecomp, a);
+          Vecu16 *decompB = *vecptr_at(genDecomp, b);
+          // set the decomp of c to the decomp of a concat decomp of b
+          decomp = *vecptr_at(genDecomp, c);
+          u32 dind = decompA->size;
+          vecu16_indexOf(decompA, 0xffff, &dind, 0);
+          vecu16_copyInto(decompA, decomp, 0);
+          vecu16_copyInto(decompB, decomp, dind);
+          num++;
+        }
+      }
+    }
+  }
+  vecu16_free(util);
 }
 
 
@@ -196,7 +251,7 @@ Group *group_generateSubgroup_alloc(Group *group, Vecu16 *set)
   group_truncGeneratedSet(res, 1);
   u32 m = res->size;
   Group *subgroup = group_alloc(m, 0);
-  vecu16_copyInto(subgroup->set, res);
+  vecu16_copyInto(res, subgroup->set, 0);
   u16 a, b;
   for(i32 i = 0; i < m; i++) {
     a = *vecu16_at(res, i);

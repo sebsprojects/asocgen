@@ -61,6 +61,9 @@ bool group_isIsomorphism(GroupHom *hom);
  *   1. all elements of genFrom
  *   2. all possible products of elements from genFrom
  * and may exclude other elements
+ *
+ * Requires that the map->domain is filled from the beginning and 0xffff
+ * appears exclusively as trailing elements
  */
 bool group_hasHomPropFromGen(GroupHom *hom, Vecu16 *genFrom);
 

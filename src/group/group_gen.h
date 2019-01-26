@@ -1,6 +1,8 @@
 #ifndef GROUP_GEN
 #define GROUP_GEN
 
+#include <elfc_vecptr.h>
+
 #include "group.h"
 
 
@@ -28,6 +30,22 @@ void group_generateFrom_noalloc(Group *group,
  * between values). For a tight packing call truncGeneratedSet afterwards
  */
 Vecu16 *group_generateFrom_alloc(Group *group, Vecu16 *set);
+
+/*
+ * Returns a decomposition of all elements of the group
+ * into a product of elements from a generating set genSet.
+ * The result is stored in genDecomp. Indices into this vectptr correspond to
+ * indices in group->set. The vecu16 stored in this vecptr need to have a
+ * least size [sum over genSet: group_order(ele)].
+ * The vector is filled from the
+ * beginning. Excessive space is filled 0xffff, the vector size is left
+ * invariant.
+ * The multiplication of elements is from the right, i.e. a genDecomp
+ * [ 1 3 3 1 1 1 ] means ele = 1 * 3 * 3 * 1 * 1 * 1
+ */
+void group_genDecomposition(Group *group,
+                            Vecu16 *genSet,     // gen set of group
+                            Vecptr *genDecomp); // result
 
 
 // --------------------------------------------------------------------------
