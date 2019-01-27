@@ -80,7 +80,7 @@ void group_genDecomposition(Group *group,
                             Vecptr *genDecomp)  // result
 {
   // fill all vecu16s in genDecomp with 0xffff
-  Vecu16 *decomp = 0;
+  Vecu16 *decomp;
   for(i32 i = 0; i < genDecomp->size; i++) {
     decomp = *vecptr_at(genDecomp, i);
     vecu16_fill(decomp, 0xffff);
@@ -88,7 +88,8 @@ void group_genDecomposition(Group *group,
   u32 n = group_order(group);
   Vecu16 *util = vecu16_alloc(n);
   u16 ele;
-  i32 num = 0;
+  i32 num = 0; // the number of "reached" elements
+  // init util and genDecomp with the elements of genSet
   for(i32 i = 0; i < genSet->size; i++) {
     ele = *vecu16_at(genSet, i);
     if(ele == 0xffff) {
@@ -103,10 +104,10 @@ void group_genDecomposition(Group *group,
     *vecu16_at(decomp, 0) = ele;
   }
   i32 prevNum = 0;
-  u16 a, b, c;
+  u16 a, b, c; // all indices
   while(prevNum != num) {
     prevNum = num;
-    // generating from all elements in gendEleInds
+    // generating from all elements in util
     for(i32 i = 0; i < num; i++) {
       a = *vecu16_at(util, i);
       i32 startJ = group_isCommutative(group) ? i : 0;
@@ -114,7 +115,6 @@ void group_genDecomposition(Group *group,
         b = *vecu16_at(util, j);
         c = group_opi(group, a, b); // compute a * b
         if(!vecu16_contains(util, c, 0)) { // is this prod new in util?
-          ele = *vecu16_at(group->set, c);
           *vecu16_at(util, num) = c;
           // get the (already known decomps of a and b)
           Vecu16 *decompA = *vecptr_at(genDecomp, a);
@@ -124,7 +124,14 @@ void group_genDecomposition(Group *group,
           u32 dind = decompA->size;
           vecu16_indexOf(decompA, 0xffff, &dind, 0);
           vecu16_copyInto(decompA, decomp, 0);
-          vecu16_copyInto(decompB, decomp, dind);
+          // manual copyInto because we only need a slice until 0xffff
+          for(i32 k = 0; k < decompB->size; k++) {
+            u16 z = *vecu16_at(decompB, k);
+            if(z == 0xffff) {
+              break;
+            }
+            *vecu16_at(decomp, k + dind) = z;
+          }
           num++;
         }
       }

@@ -105,6 +105,7 @@ void group_completeHomFromGen(GroupHom *hom)
   Vecu16 *genSet = vecu16_alloc(n);
   u16 ele;
   u32 num = 0;
+  // Find the genSet from hom->map, i.e. all elements != 0xffff in the domain
   for(i32 i = 0; i < hom->map->domain->size; i++) {
     ele = *vecu16_at(hom->map->domain, i);
     if(ele != 0xffff) {
@@ -114,13 +115,24 @@ void group_completeHomFromGen(GroupHom *hom)
   }
   vecu16_resize(genSet, num);
   u16 x, g, mappedProd;
+  u32 mapInd = 0;
+  // alloc a vector of Vecu16* to store the genDecomposition for each group ele
   Vecptr *genDecompVec = vecptr_alloc(n);
   for(i32 i = 0; i < n; i++) {
     *vecptr_at(genDecompVec, i) = vecu16_alloc(genSet->size * n);
   }
+  // calculate the decomp
   group_genDecomposition(hom->from, genSet, genDecompVec);
-  Vecu16 *genDecomp = 0;
+  Vecu16 *genDecomp;
+  // For each group element and its decomp, calculate the image under the
+  // homomorphism by evaluating the decomp sequence and multiplying it together
   for(i32 i = 0; i < n; i++) {
+    // group element at index i has decomp at index i
+    x = *vecu16_at(hom->from->set, i);
+    if(vecu16_contains(genSet, x, 0)) { // skip ele of genSet, already in map
+      continue;
+    }
+    genDecomp = *vecptr_at(genDecompVec, i);
     mappedProd = *vecu16_at(genDecomp, 0);
     for(i32 j = 1; j < genDecomp->size; j++) {
       g = *vecu16_at(genDecomp, j);
@@ -130,8 +142,13 @@ void group_completeHomFromGen(GroupHom *hom)
       mappedProd = group_op(hom->to, mappedProd,
                             mapu16_mapEle(hom->map, g));
     }
-    *vecu16_at(hom->map->domain, i) = x;
-    *vecu16_at(hom->map->codomain, i) = mappedProd;
+    // find the next free index in map->domain. This is neccessary since it
+    // might contain the elements of genSet at abitrary indices
+    while(*vecu16_at(hom->map->domain, mapInd) != 0xffff) {
+      mapInd++;
+    }
+    *vecu16_at(hom->map->domain, mapInd) = x;
+    *vecu16_at(hom->map->codomain, mapInd) = mappedProd;
   }
   for(i32 i = 0; i < n; i++) {
     vecu16_free(*vecptr_at(genDecompVec, i));

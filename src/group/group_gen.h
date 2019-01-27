@@ -42,6 +42,8 @@ Vecu16 *group_generateFrom_alloc(Group *group, Vecu16 *set);
  * invariant.
  * The multiplication of elements is from the right, i.e. a genDecomp
  * [ 1 3 3 1 1 1 ] means ele = 1 * 3 * 3 * 1 * 1 * 1
+ * genSet may be 0xffff terminated but must be filled sequentially from the
+ * start
  */
 void group_genDecomposition(Group *group,
                             Vecu16 *genSet,     // gen set of group
