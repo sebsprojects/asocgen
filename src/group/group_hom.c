@@ -1,6 +1,7 @@
 #include "group_hom.h"
 
 #include <elfc_vecptr.h>
+#include <elfc_perm.h>
 
 #include <stdlib.h>
 
@@ -155,4 +156,80 @@ void group_completeHomFromGen(GroupHom *hom)
   }
   vecptr_free(genDecompVec);
   vecu16_free(genSet);
+}
+
+//TODO: Commutative fix
+/*
+ * To test all mappings between genFrom -> genTo we fix the domain
+ * with the first m entries being genFrom followed all possible group products
+ * in index-ascending order, i.e.
+ * codomain = [ 0, 1, 00, 01, 10, 11]
+ * where the double-digits are to interpreted as the respective group products
+ *
+ * The codomain is initialized in the same way with elements from genTo
+ * Then we check all permutations of genTo (and the resulting permutation of
+ * the products which is uniquely determined by the perm of genTo) for
+ * group_hasHomPropFromGen
+ */
+bool group_findHomFromGen(GroupHom *hom, Vecu16 *genFrom, Vecu16 *genTo)
+{
+  if(genFrom->size != genTo->size) {
+    return 0;
+  }
+  u32 m = genFrom->size;
+  Mapu16 *map = hom->map;
+  vecu16_fill(map->domain, 0xffff);
+  vecu16_fill(map->codomain, 0xffff);
+  u16 a = 0;
+  u16 b = 0;
+  for(i32 i = 0; i < m; i++) {
+    *vecu16_at(map->domain, i) = *vecu16_at(genFrom, i);
+    for(i32 j = 0; j < m; j++) {
+      a = *vecu16_at(genFrom, i);
+      b = *vecu16_at(genFrom, j);
+      *vecu16_at(map->domain, m + i * m + j) = group_op(hom->from, a, b);
+    }
+  }
+  map->indexed = mapu16_isIndexed(map);
+  Vecu16 *codom = vecu16_alloc(m * m + m);
+  for(i32 i = 0; i < m; i++) {
+    *vecu16_at(codom, i) = *vecu16_at(genTo, i);
+    for(i32 j = 0; j < m; j++) {
+      a = *vecu16_at(genTo, i);
+      b = *vecu16_at(genTo, j);
+      *vecu16_at(codom, m + i * m + j) = group_op(hom->to, a, b); // ij prod
+    }
+  }
+  vecu16_copyInto(codom, map->codomain, 0);
+  Vecu16 *perm = vecu16_alloc(m);
+  perm_init(perm);
+  vecu16_print(perm);
+  vecu16_print(map->domain);
+  vecu16_print(map->codomain);
+  printf("\n\n");
+  bool foundValid = group_hasHomPropFromGen(hom, genFrom);
+  i32 mi = -1;
+  i32 mj = -1;
+  while(perm_shiftDefault(perm) && !foundValid) {
+    for(i32 i = 0; i < m; i++) {
+      // permute genTo in the first m entries of codom
+      mi = *vecu16_at(perm, i);
+      *vecu16_at(map->codomain, i) = *vecu16_at(codom, mi);
+      // permute the prods according to ind pair permutation at index m onwards
+      for(i32 j = 0; j < m; j++) {
+        mj = *vecu16_at(perm, j);
+        // mi mj product
+        *vecu16_at(map->codomain, m + i * m + j) = *vecu16_at(codom,
+                                                              m + mi * m + mj);
+        vecu16_print(perm);
+        vecu16_print(map->domain);
+        vecu16_print(map->codomain);
+        printf("\n\n");
+        foundValid = group_hasHomPropFromGen(hom, genFrom);
+      }
+    }
+  }
+  vecu16_free(perm);
+  vecu16_free(codom);
+  return foundValid;
 }

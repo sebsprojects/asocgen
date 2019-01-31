@@ -25,30 +25,17 @@ i32 main() {
   Group *sncopy = group_getRenamedCopy_alloc(sn, map);
   Vecu16 *genSet = group_minGeneratingSet_alloc(sn);
   Vecu16 *genSetC = group_minGeneratingSet_alloc(sncopy);
-  u32 ind = genSet->size;
-  vecu16_indexOf(genSet, 0xffff, &ind, 0);
-  vecu16_resize(genSet, ind);
-  vecu16_resize(genSetC, ind);
-  vecu16_print(genSet);
-  vecu16_print(genSetC);
+
   Mapu16 *hommap = mapu16_alloc(m, 0);
-  vecu16_fill(hommap->domain, 0xffff);
-  vecu16_fill(hommap->codomain, 0xffff);
-  for(i32 i = 0; i < genSet->size; i++) {
-    *vecu16_at(hommap->domain, i) = *vecu16_at(genSetC, i);
-    *vecu16_at(hommap->codomain, i) = *vecu16_at(genSet, i);
-  }
+  GroupHom *hom = group_allocHom_ref(sn, sncopy, hommap);
+  group_findHomFromGen(hom, genSet, genSetC);
 
-  GroupHom *hom = group_allocHom_ref(sncopy, sn, hommap);
-  printf("Has hom prop: %i\n", group_hasHomPropFromGen(hom, genSetC));
+  mapu16_free(hommap);
   group_freeHom_ref(hom);
-
   vecu16_free(genSet);
   vecu16_free(genSetC);
   mapu16_free(map);
-
   group_free(sncopy);
-
   group_free(sn);
   group_free(cn);
   return 0;
