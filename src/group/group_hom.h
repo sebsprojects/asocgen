@@ -48,38 +48,4 @@ bool group_hasHomProp(GroupHom *hom);
 bool group_isIsomorphism(GroupHom *hom);
 
 
-// ---------------------------------------------------------------------------
-// Working with partial homomorphisms defined only on generating sets
-// ---------------------------------------------------------------------------
-
-/*
- * Checks h(x * y) = h(x) * h(y) only for x, y in a generating set of
- * hom->from. This is sufficient to know that all elements have this property
- *
- * This function does NOT require a valid homomorphism:
- * map->domain may be restricted to
- *   1. all elements of genFrom
- *   2. all possible products of elements from genFrom
- * and may exclude other elements
- *
- * Requires that the map->domain is filled from the beginning and 0xffff
- * appears exclusively as trailing elements
- */
-bool group_hasHomPropFromGen(GroupHom *hom, Vecu16 *genFrom);
-
-/*
- * If hom hasHomPropFromGen, then hom->map is extended to the whole
- * groups. This requires that hom->map has sufficient space allocated
- * (in domain and codomain)
- */
-void group_completeHomFromGen(GroupHom *hom);
-
-/*
- * Checks all possible partial maps between genFrom and genTo for the
- * homomorphism property. If one is found, the map is extended to the
- * whole hom and true is returned. Otherwise false is returned and hom->map
- * is left invariant
- */
-bool group_findHomFromGen(GroupHom *hom, Vecu16 *genFrom, Vecu16 *genTo);
-
 #endif

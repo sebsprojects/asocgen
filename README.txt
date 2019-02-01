@@ -3,7 +3,7 @@ treated as black box object, i.e. are given by a multiplication table.
 
 
 Main features (will) include:
-* Generating the "base"-groups: Cn, Sn, GL over finite fields, ...
+* Generating "base"-groups: Cn, Sn, GL over finite fields, ...
 * Basic property and subgroup analysis
 * Computing minimal generating sets
 * Checking for isomorphism
@@ -14,3 +14,15 @@ Main features (will) include:
 Groups can be generated as subgroups of base groups such as Sn and GL over
 finite fields. Groups may also be constructed with methods such as direct
 products, commutators, ...
+
+
+Stage 1 Properties (cheap)
+* group order
+* is cyclic
+* is commutative
+* element order distribution
+* size of minimal generating set
+* Stage 1 of center
+* Stage 1 of commutator
+
+Stage 2 Properties

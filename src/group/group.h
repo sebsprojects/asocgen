@@ -39,6 +39,7 @@ bool group_isCyclic(Group *group);
 
 u16 group_elementOrder(Group *group, u16 ele);
 u16 group_elementOrderi(Group *group, u16 ind);
+
 Mapu16 *group_orderDist_alloc(Group *group);
 
 u16 group_neutral(Group *group);
@@ -47,20 +48,33 @@ u16 group_neutrali(Group *group);
 u16 group_inv(Group *group, u16 ele);
 u16 group_invi(Group *group, u16 ind);
 
+bool group_commutesWithGroupi(Group *group, u16 ele);
 
 // ---------------------------------------------------------------------------
 // Subgroup related
 // ---------------------------------------------------------------------------
 
+/*
+ * calculates a * toConj * inv(a)
+ */
 u16 group_conjEle(Group *group, u16 toConj, u16 a);
 u16 group_conjElei(Group *group, u16 toConj, u16 a);
 
-Vecu16 *group_leftCoset_alloc(Group *group, Group *subgroup, u16 ele);
-Vecu16 *group_rightCoset_alloc(Group *group, Group *subgroup, u16 ele);
+/*
+ * Assumes and requires set is a subset of group->set
+ */
+bool group_isSubgroupSet(Group *group, Vecu16 *set);
+bool group_isNormalSubgroupSet(Group *group, Vecu16 *set);
 
 bool group_isSubgroup(Group *group, Group *subgroup);
 bool group_isNormalSubgroup(Group *group, Group *subgroup);
 
+/*
+ * res must be of size group_order(group) and is resized by this function
+ * to fit the result
+ */
+void group_centerElements(Group *group, Vecu16 *res);
+void group_commutatorElements(Group *group, Vecu16 *res);
 
 // ---------------------------------------------------------------------------
 // Validation
@@ -80,7 +94,6 @@ bool group_hasInvs(Group *group);
 // ---------------------------------------------------------------------------
 
 void group_printSummary(Group *group);
-//void group_print(Group *group);
 
 
 // ---------------------------------------------------------------------------

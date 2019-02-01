@@ -164,6 +164,16 @@ u16 group_inv(Group *group, u16 ele) {
   return *vecu16_at(group->set, group_invi(group, ind));
 }
 
+bool group_commutesWithGroupi(Group *group, u16 ind)
+{
+  for(i32 i = 0; i < group_order(group); i++) {
+    if(group_opi(group, i, ind) != group_opi(group, ind, i)) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
 
 // ---------------------------------------------------------------------------
 // Subgroup related
@@ -180,27 +190,17 @@ u16 group_conjElei(Group *group, u16 toConj, u16 a)
 }
 
 /*
-Vecu16 *group_leftCoset_alloc(Group *group, Group *subgroup, u16 ele)
+ * Check if set is closed under group operation
+ */
+bool group_isSubgroupSet(Group *group, Vecu16 *set)
 {
-  return 0;
-}
-
-Vecu16 *group_rightCoset_alloc(Group *group, Group *subgroup, u16 ele) {
-  return 0;
-}
-*/
-
-bool group_isSubgroup(Group *group, Group *subgroup)
-{
-  if(!vecu16_isSubset(subgroup->set, group->set)) {
-    return 0;
-  }
-  u16 a, b;
-  for(i32 i = 0; i < group_order(subgroup); i++) {
-    a = *vecu16_at(subgroup->set, i);
-    for(i32 j = 0; j < group_order(subgroup); j++) {
-      b = *vecu16_at(subgroup->set, j);
-      if(group_op(group, a, b) != group_op(subgroup, a, b)) {
+  u16 a = 0xffff;
+  u16 b = 0xffff;
+  for(i32 i = 0; i < set->size; i++) {
+    a = *vecu16_at(set, i);
+    for(i32 j = 0; j < set->size; j++) {
+      b = *vecu16_at(set, j);
+      if(!vecu16_contains(set, group_op(group, a, b), 0)) {
         return 0;
       }
     }
@@ -208,23 +208,83 @@ bool group_isSubgroup(Group *group, Group *subgroup)
   return 1;
 }
 
-bool group_isNormalSubgroup(Group *group, Group *subgroup)
+/*
+ * Check g*set*inv(g) == set for all g in group
+ */
+bool group_isNormalSubgroupSet(Group *group, Vecu16 *set)
 {
-  Vecu16 *conjSet = vecu16_alloc(group_order(subgroup));
+  if(group_isCommutative(group)) {
+    return 1;
+  }
+  Vecu16 *conjSet = vecu16_alloc(set->size);
   bool isNormal = 1;
+  u16 g = 0xffff;
+  u16 h = 0xffff;
   for(i32 i = 0; i < group_order(group); i++) {
-    // for index i calculate the set of conj elements jij^-1 and check eqlity
-    for(i32 j = 0; j < group_order(subgroup); j++) {
-      *vecu16_at(conjSet, j) = *vecu16_at(group->set,
-                                          group_conjElei(group, j, i));
+    g = *vecu16_at(group->set, i);
+    for(i32 j = 0; j < set->size; j++) {
+      h = *vecu16_at(set, j);
+      *vecu16_at(conjSet, j) = group_conjEle(group, g, h); // hgh^-1
     }
-    isNormal = isNormal && vecu16_areEqualSets(conjSet, subgroup->set);
+    isNormal = isNormal && vecu16_areEqualSets(conjSet, set);
     if(!isNormal) {
       break;
     }
   }
   vecu16_free(conjSet);
   return isNormal;
+
+}
+
+bool group_isSubgroup(Group *group, Group *subgroup)
+{
+  return group_isSubgroupSet(group, subgroup->set);
+}
+
+bool group_isNormalSubgroup(Group *group, Group *subgroup)
+{
+  return group_isNormalSubgroupSet(group, subgroup->set);
+}
+
+void group_centerElements(Group *group, Vecu16 *res)
+{
+  vecu16_fill(res, 0xffff);
+  u32 ind = 0;
+  u16 ele = 0xffff;
+  for(i32 i = 0; i < group_order(group); i++) {
+    if(group_commutesWithGroupi(group, i)) {
+      ele = *vecu16_at(group->set, i);
+      if(!vecu16_contains(res, ele, 0)) {
+        *vecu16_at(res, ind) = ele;
+        ind++;
+      }
+    }
+  }
+  vecu16_resize(res, ind);
+}
+
+void group_commutatorElements(Group *group, Vecu16 *res)
+{
+  vecu16_fill(res, 0xffff);
+  u32 ind = 0;
+  u16 invA = 0xffff;
+  u16 invB = 0xffff;
+  u16 ele = 0xffff;
+  for(i32 i = 0; i < group_order(group); i++) {
+    invA = group_invi(group, i);
+    for(i32 j = 0; j < group_order(group); j++) {
+      invB = group_invi(group, j);
+      ele = group_opi(group, invA, invB);
+      ele = group_opi(group, ele, i);
+      ele = group_opi(group, ele, j);
+      ele = *vecu16_at(group->set, ele);
+      if(!vecu16_contains(res, ele, 0)) {
+        *vecu16_at(res, ind) = ele;
+        ind++;
+      }
+    }
+  }
+  vecu16_resize(res, ind);
 }
 
 
