@@ -194,6 +194,7 @@ bool group_generatingSet(Group *group,
   return binomPossible;
 }
 
+// See version below for comments
 bool group_minGeneratingSet_noalloc(Group *group,
                                     Vecu16 *res,
                                     Vecu16 *binom,
@@ -205,16 +206,13 @@ bool group_minGeneratingSet_noalloc(Group *group,
   vecu16_indexOf(binom, 0xffff, &pn, 0);
   bool binomPossible = 1;
   bool genComplete = 0;
-  // iterate over all possible pns starting from pn
   for(i32 i = pn; i <= n; i++) {
     while(!genComplete && binomPossible) {
       binomPossible = group_generatingSet(group, res, binom, util1, util2, i);
-      // initGenSetFromBinom guarantees that the first element in res is
-      // always no 0xffff if a generating set was found
+      // generatingSet ensures that if we have a complete gen, then at index 0
+      // contains the first element and not 0xffff
       genComplete = *vecu16_at(res, 0) != 0xffff;
     }
-    // if we are not already at i = n, increase the pn by one
-    // do this even if genComplete == 1, since the current binom was used up
     if(!binomPossible && i < n) {
       binom_init(binom, 0, i + 1, 0);
       binomPossible = 1;
@@ -223,11 +221,48 @@ bool group_minGeneratingSet_noalloc(Group *group,
       return binomPossible;
     }
   }
-  // This should never occur since the whole group->set is always a generating
-  // set
-  // TODO: Somehow produce and error here?
   if(!genComplete) {
     vecu16_fill(res, 0xffff);
+  }
+  return binomPossible;
+}
+
+bool group_minGeneratingSetConstr_noalloc(Group *group,
+                                          Vecu16 *res,
+                                          Vecu16 *binom,
+                                          Vecu16 *util1,
+                                          Vecu16 *util2,
+                                          GenOrderConstr *orderConstr)
+{
+  u32 n = group_order(group);
+  u32 pn = n;
+  vecu16_indexOf(binom, 0xffff, &pn, 0); // set pn
+  bool binomPossible = 1;
+  bool genComplete = 0;
+  Vecu16 *ordCons = orderConstr->orderConstr;
+  Vecu16 *eleOrd = orderConstr->groupEleOrders;
+  Vecu16 *ordCheck = orderConstr->util;
+  // iterate over all possible pns starting from pn
+  while(binomPossible) {
+    // Order constraint check if supplied. Write the order of all
+    // binom-elements to ordCheck, sort it and compare for vector equality
+    for(i32 j = 0; j < pn; j++) {
+      *vecu16_at(ordCheck, j) = *vecu16_at(eleOrd, *vecu16_at(binom, j));
+    }
+    vecu16_sort(ordCheck, 0, ordCheck->size);
+    if(vecu16_areEqualVectors(ordCons, ordCheck)) {
+      initGenSetFromBinom(group, binom, res, pn);
+      group_generateFrom_noalloc(group, res, util1, util2);
+      binomPossible = binom_shift(binom, n - 1, pn, 0);
+      genComplete = isCompleteGen(util1);
+    } else {
+      binomPossible = binom_shift(binom, n - 1, pn, 0);
+    }
+    if(genComplete) {
+      return binomPossible;
+    } else {
+      vecu16_fill(res, 0xffff);
+    }
   }
   return binomPossible;
 }

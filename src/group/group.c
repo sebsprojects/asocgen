@@ -133,12 +133,12 @@ u16 group_neutral(Group *group)
   return *vecu16_at(group->set, group_neutrali(group));
 }
 
+//TODO: This assumes index 0 is neutral element
 u16 group_neutrali(Group *group)
 {
   for(i32 i = 0; i < group_order(group); i++) {
     if(group_opi(group, i, 0) == 0) {
       return i;
-      break;
     }
   }
   return 0xffff; // error value

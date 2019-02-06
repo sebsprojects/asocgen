@@ -1,6 +1,5 @@
 #include "group_hom.h"
 
-#include <elfc_vecptr.h>
 #include <elfc_perm.h>
 
 #include <stdlib.h>
@@ -68,4 +67,46 @@ bool group_isIsomorphism(GroupHom *hom)
   return group_order(hom->from) == group_order(hom->to) &&
          mapu16_isInjective(hom->map) &&
          group_isValidHom(hom);
+}
+
+
+// ---------------------------------------------------------------------------
+// Gen
+// ---------------------------------------------------------------------------
+
+/*
+ * We have h(g) = y for g in a generating set and need to find
+ * h(x) for any x in hom->from
+ */
+void group_completeHomFromGen(GroupHom *hom,
+                              Vecu16 *genSet,
+                              Vecptr *genDecompVec)
+{
+  u32 n = group_order(hom->from);
+  u16 x = 0xffff;
+  u16 g = 0xffff;
+  u16 mappedProd = 0xffff;
+  Vecu16 *genDecomp;
+  // For each group element and its decomp, calculate the image under the
+  // homomorphism by evaluating the decomp sequence and multiplying it together
+  for(i32 i = 0; i < n; i++) {
+    // group element at index i has decomp at index i
+    x = *vecu16_at(hom->from->set, i);
+    if(vecu16_contains(genSet, x, 0)) { // skip ele of genSet, already in map
+      continue;
+    }
+    genDecomp = *vecptr_at(genDecompVec, i);
+    mappedProd = mapu16_mapEle(hom->map, *vecu16_at(genDecomp, 0));
+    for(i32 j = 1; j < genDecomp->size; j++) {
+      g = *vecu16_at(genDecomp, j);
+      if(g == 0xffff) { // end of decomp is reached
+        break;
+      }
+      mappedProd = group_op(hom->to, mappedProd,
+                            mapu16_mapEle(hom->map, g));
+    }
+    // indicies in [0, genSet->size) are already filled by genSet elements
+    *vecu16_at(hom->map->domain, genSet->size + i) = x;
+    *vecu16_at(hom->map->codomain, genSet->size + i) = mappedProd;
+  }
 }

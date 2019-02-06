@@ -2,6 +2,7 @@
 #define GROUPHOM
 
 #include <elfc_vecu16.h>
+#include <elfc_vecptr.h>
 #include <elfc_mapu16.h>
 
 #include "group.h"
@@ -47,5 +48,22 @@ bool group_hasHomProp(GroupHom *hom);
  */
 bool group_isIsomorphism(GroupHom *hom);
 
+
+// ---------------------------------------------------------------------------
+// Gen
+// ---------------------------------------------------------------------------
+
+/*
+ * Given a partial hom->map from a (fixed) generating set genSet of hom->from
+ * and given a decomposition of all elements from hom->from into products of
+ * elements from genSet, expand the map to all elements of
+ * hom->from. This may or may not result in a valid homomorphism
+ *
+ * For speed it is required that hom->map is filled from the beginning with
+ * the partial mapping
+ */
+void group_completeHomFromGen(GroupHom *hom,
+                              Vecu16* genSet,
+                              Vecptr *genDecompVec);
 
 #endif
