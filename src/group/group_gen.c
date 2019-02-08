@@ -2,6 +2,8 @@
 
 #include <elfc_perm.h>
 
+#include <stdlib.h>
+
 // --------------------------------------------------------------------------
 // Generating from group elements
 // --------------------------------------------------------------------------
@@ -22,6 +24,7 @@ void group_generateFrom_noalloc(Group *group,
                                 Vecu16 *res,    // result
                                 Vecu16 *util)   // incremental fill
 {
+  bool isCommu = group_isCommutative(group);
   vecu16_fill(res, 0xffff);
   // fill util with the inds of elements in set, copy elements from set to res
   u16 ele;
@@ -45,7 +48,7 @@ void group_generateFrom_noalloc(Group *group,
     prevNum = num;
     for(i32 i = 0; i < num; i++) {
       a = *vecu16_at(util, i);
-      i32 startJ = group_isCommutative(group) ? i : 0;
+      i32 startJ = isCommu ? i : 0;
       for(i32 j = startJ; j < num; j++) {
         b = *vecu16_at(util, j);
         c = group_opi(group, a, b);
@@ -86,6 +89,7 @@ void group_genDecomposition(Group *group,
     vecu16_fill(decomp, 0xffff);
   }
   u32 n = group_order(group);
+  bool isCommu = group_isCommutative(group);
   Vecu16 *util = vecu16_alloc(n);
   u16 ele;
   i32 num = 0; // the number of "reached" elements
@@ -110,7 +114,7 @@ void group_genDecomposition(Group *group,
     // generating from all elements in util
     for(i32 i = 0; i < num; i++) {
       a = *vecu16_at(util, i);
-      i32 startJ = group_isCommutative(group) ? i : 0;
+      i32 startJ = isCommu ? i : 0;
       for(i32 j = startJ; j < num; j++) {
         b = *vecu16_at(util, j);
         c = group_opi(group, a, b); // compute a * b
@@ -194,7 +198,7 @@ bool group_generatingSet(Group *group,
   return binomPossible;
 }
 
-// See version below for comments
+// Careful: the group_generatingSet call increments the binom
 bool group_minGeneratingSet_noalloc(Group *group,
                                     Vecu16 *res,
                                     Vecu16 *binom,
@@ -227,21 +231,42 @@ bool group_minGeneratingSet_noalloc(Group *group,
   return binomPossible;
 }
 
-bool group_minGeneratingSetConstr_noalloc(Group *group,
-                                          Vecu16 *res,
-                                          Vecu16 *binom,
-                                          Vecu16 *util1,
-                                          Vecu16 *util2,
-                                          GenOrderConstr *orderConstr)
+GenConstrUtils *group_allocSetupConstrUtils(Group* group, u32 orderConstrSize)
+{
+  u32 n = group_order(group);
+  GenConstrUtils *constr = malloc(sizeof(GenConstrUtils));
+  constr->groupEleOrders = vecu16_alloc(n);
+  constr->orderUtil = vecu16_alloc(orderConstrSize);
+  constr->genUtil1 = vecu16_alloc(n);
+  constr->genUtil2 = vecu16_alloc(n);
+  for(i32 i = 0; i < n; i++) {
+    *vecu16_at(constr->groupEleOrders, i) = group_elementOrderi(group, i);
+  }
+  return constr;
+}
+
+void group_freeConstrUtils(GenConstrUtils *constrUtils)
+{
+  vecu16_free(constrUtils->genUtil2);
+  vecu16_free(constrUtils->genUtil1);
+  vecu16_free(constrUtils->orderUtil);
+  vecu16_free(constrUtils->groupEleOrders);
+  free(constrUtils);
+}
+
+bool group_minGeneratingSetConstr(Group *group,
+                                  Vecu16 *res,
+                                  Vecu16 *binom,
+                                  Vecu16 *orderConstr,
+                                  GenConstrUtils *utils)
 {
   u32 n = group_order(group);
   u32 pn = n;
   vecu16_indexOf(binom, 0xffff, &pn, 0); // set pn
   bool binomPossible = 1;
   bool genComplete = 0;
-  Vecu16 *ordCons = orderConstr->orderConstr;
-  Vecu16 *eleOrd = orderConstr->groupEleOrders;
-  Vecu16 *ordCheck = orderConstr->util;
+  Vecu16 *eleOrd = utils->groupEleOrders;
+  Vecu16 *ordCheck = utils->orderUtil;
   // iterate over all possible pns starting from pn
   while(binomPossible) {
     // Order constraint check if supplied. Write the order of all
@@ -250,11 +275,11 @@ bool group_minGeneratingSetConstr_noalloc(Group *group,
       *vecu16_at(ordCheck, j) = *vecu16_at(eleOrd, *vecu16_at(binom, j));
     }
     vecu16_sort(ordCheck, 0, ordCheck->size);
-    if(vecu16_areEqualVectors(ordCons, ordCheck)) {
+    if(vecu16_areEqualVectors(orderConstr, ordCheck)) {
       initGenSetFromBinom(group, binom, res, pn);
-      group_generateFrom_noalloc(group, res, util1, util2);
+      group_generateFrom_noalloc(group, res, utils->genUtil1, utils->genUtil2);
       binomPossible = binom_shift(binom, n - 1, pn, 0);
-      genComplete = isCompleteGen(util1);
+      genComplete = isCompleteGen(utils->genUtil1);
     } else {
       binomPossible = binom_shift(binom, n - 1, pn, 0);
     }

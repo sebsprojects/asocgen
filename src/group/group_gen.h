@@ -92,12 +92,19 @@ bool group_minGeneratingSet_noalloc(Group *group,
                                     Vecu16 *util1,  // binom to use
                                     Vecu16 *util2); // util for genFrom
 
-struct GenOrderConstr {
-  Vecu16 *orderConstr;
-  Vecu16 *groupEleOrders;
-  Vecu16 *util;
+struct GenConstrUtils {
+  Vecu16 *groupEleOrders; // stores pre-calculated group element orders
+  Vecu16 *orderUtil;      // to compare element orders
+  Vecu16 *genUtil1;       // util for generateFrom
+  Vecu16 *genUtil2;       // util for generateFrom
 };
-typedef struct GenOrderConstr GenOrderConstr;
+typedef struct GenConstrUtils GenConstrUtils;
+
+/*
+ * Helper for setting up GenOrderConstr
+ */
+GenConstrUtils *group_allocSetupConstrUtils(Group *group, u32 orderConstrSize);
+void group_freeConstrUtils(GenConstrUtils *constrUtils);
 
 /*
  * Searches for a minimal generating set like above, but with additional
@@ -114,13 +121,15 @@ typedef struct GenOrderConstr GenOrderConstr;
  * > groupEleOrders must be filled with the group element orders complying
  *   with the indexing of group->set.
  * > util must equal size to orderConstr and may be uninitialized.
+ *
+ * Returns 1 if the binom shift was possible and this function may be called
+ * again with the new binom. Return 0 otherwise.
  */
-bool group_minGeneratingSetConstr_noalloc(Group *group,
-                                          Vecu16 *res,
-                                          Vecu16 *binom,
-                                          Vecu16 *util1,
-                                          Vecu16 *util2,
-                                          GenOrderConstr *orderConstr);
+bool group_minGeneratingSetConstr(Group *group,
+                                  Vecu16 *res,
+                                  Vecu16 *binom,
+                                  Vecu16 *orderConstr,
+                                  GenConstrUtils *genConstrUtils);
 
 /*
  * Returns a pointer to a newly allocated array containing the first minimal

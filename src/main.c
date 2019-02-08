@@ -13,25 +13,15 @@
 
 
 i32 main() {
-  u32 n = 6;
+  u32 n = 5;
   Group *cn = createCn_alloc(n);
   Group *sn = createSn_alloc(n);
   u32 m = group_order(sn);
 
   Vecu16 *res = vecu16_alloc(m);
-  Vecu16 *util1 = vecu16_alloc(m);
-  Vecu16 *util2 = vecu16_alloc(m);
   Vecu16 *binom = vecu16_alloc(m);
   Vecu16 *orderConstr = vecu16_allocN(2, 2, 5);
-  Vecu16 *groupOrders = vecu16_alloc(m);
-  for(i32 i = 0; i < m; i++) {
-    *vecu16_at(groupOrders, i) = group_elementOrderi(sn, i);
-  }
-  Vecu16 *genUtil = vecu16_alloc(2);
-  GenOrderConstr constr;
-  constr.orderConstr = orderConstr;
-  constr.groupEleOrders = groupOrders;
-  constr.util = genUtil;
+  GenConstrUtils *constr = group_allocSetupConstrUtils(sn, 2);
 
   binom_init(binom, 0, 2, 0);
   bool ok = 1;
@@ -46,8 +36,7 @@ i32 main() {
   //TODO: Somehow the orders do not match in group_gen function check
   //and orders checked here
   while(ok) {
-    ok = group_minGeneratingSetConstr_noalloc(sn, res, binom,
-                                              util1, util2, &constr);
+    ok = group_minGeneratingSetConstr(sn, res, binom, orderConstr, constr);
     //ok = group_minGeneratingSet_noalloc(sn, res, binom, util1, util2);
     if(*vecu16_at(res, 0) == 0xffff || *vecu16_at(binom, 2) != 0xffff) {
       break;
@@ -76,12 +65,11 @@ i32 main() {
   }
 
   veci32_free(ordCounter);
+
+  group_freeConstrUtils(constr);
   vecu16_free(orderConstr);
-  vecu16_free(groupOrders);
-  vecu16_free(genUtil);
+
   vecu16_free(binom);
-  vecu16_free(util2);
-  vecu16_free(util1);
   vecu16_free(res);
 
   group_free(sn);

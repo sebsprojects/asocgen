@@ -78,7 +78,7 @@ bool group_isIsomorphism(GroupHom *hom)
  * We have h(g) = y for g in a generating set and need to find
  * h(x) for any x in hom->from
  */
-void group_completeHomFromGen(GroupHom *hom,
+void group_completeMapFromGen(GroupHom *hom,
                               Vecu16 *genSet,
                               Vecptr *genDecompVec)
 {
@@ -109,4 +109,68 @@ void group_completeHomFromGen(GroupHom *hom,
     *vecu16_at(hom->map->domain, genSet->size + i) = x;
     *vecu16_at(hom->map->codomain, genSet->size + i) = mappedProd;
   }
+}
+
+HomIsoUtils *group_allocSetupIsoUtils(GroupHom *hom,
+                                      Vecu16 *genFrom,
+                                      Vecu16 *orderConstr)
+{
+  u32 n = group_order(hom->from);
+  u32 m = genFrom->size;
+  HomIsoUtils *utils = malloc(sizeof(HomIsoUtils));
+  utils->genSetTo = vecu16_alloc(m);
+  utils->mperm = vecu16_alloc(m);
+  utils->genDecompVec = vecptr_alloc(n);
+  utils->orderConstr = vecu16_copy(orderConstr);
+  utils->genConstrUtils = group_allocSetupConstrUtils(hom->from,
+                                                      orderConstr->size);
+  for(i32 i = 0; i < n; i++) {
+    *vecptr_at(utils->genDecompVec, i) = vecu16_alloc(n);
+  }
+  group_genDecomposition(hom->from, genFrom, utils->genDecompVec);
+  return utils;
+}
+
+void group_freeIsoUtils(HomIsoUtils *isoUtils)
+{
+  group_freeConstrUtils(isoUtils->genConstrUtils);
+  vecu16_free(isoUtils->orderConstr);
+  for(i32 i = 0; i < isoUtils->genDecompVec->size; i++) {
+    vecu16_free(*vecptr_at(isoUtils->genDecompVec, i));
+  }
+  vecptr_free(isoUtils->genDecompVec);
+  vecu16_free(isoUtils->mperm);
+  vecu16_free(isoUtils->genSetTo);
+  free(isoUtils);
+}
+
+bool group_checkForIsomorphismFromGen(GroupHom *hom,
+                                      Vecu16 *genSet,
+                                      Vecu16 *binom,
+                                      HomIsoUtils *isoUtils)
+{
+  bool binomOk = group_minGeneratingSetConstr(hom->to,
+                                              isoUtils->genSetTo,
+                                              binom,
+                                              isoUtils->orderConstr,
+                                              isoUtils->genConstrUtils);
+
+  perm_init(isoUtils->mperm);
+  bool mpermOk = 1;
+  u32 ind = genSet->size;
+  u32 genSetSize = vecu16_indexOf(genSet, 0xffff, &ind, 0);
+  u32 mapInd = 0;
+  while(mpermOk) {
+    for(i32 i = 0; i < genSetSize; i++) {
+      mapInd = *vecu16_at(isoUtils->mperm, i);
+      *vecu16_at(hom->map->codomain, i) = *vecu16_at(isoUtils->genSetTo,
+                                                     mapInd);
+    }
+    group_completeMapFromGen(hom, genSet, isoUtils->genDecompVec);
+    if(mapu16_isInjective(hom->map) && group_hasHomProp(hom)) {
+      return binomOk;
+    }
+    mpermOk = perm_shiftDefault(isoUtils->mperm);
+  }
+  return binomOk;
 }

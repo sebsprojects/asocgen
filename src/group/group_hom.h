@@ -6,6 +6,7 @@
 #include <elfc_mapu16.h>
 
 #include "group.h"
+#include "group_gen.h"
 
 /*
  * A homomorphism between from -> to via map
@@ -62,8 +63,35 @@ bool group_isIsomorphism(GroupHom *hom);
  * For speed it is required that hom->map is filled from the beginning with
  * the partial mapping
  */
-void group_completeHomFromGen(GroupHom *hom,
-                              Vecu16* genSet,
+void group_completeMapFromGen(GroupHom *hom,
+                              Vecu16 *genSet,
                               Vecptr *genDecompVec);
+
+/*
+ * A struct containing necessar vecu16s to execute findIsomorphismFromGen
+ * without any allocations. Used to call minGeneratingSetConstr_noalloc
+ */
+struct HomIsoUtils {
+  Vecu16 *genSetTo;               // The genSet of hom->to
+  Vecu16 *mperm;                  // Perm for mapping genSets onto each other
+  Vecptr *genDecompVec;           // Full decomp into elements from genSetFrom
+  Vecu16 *orderConstr;            // For group_minGeneratingSetConstr
+  GenConstrUtils *genConstrUtils; // For group_minGeneratingSetConstr
+};
+typedef struct HomIsoUtils HomIsoUtils;
+
+HomIsoUtils *group_allocSetupIsoUtils(GroupHom *hom,
+                                      Vecu16 *genFrom,
+                                      Vecu16 *orderConstr);
+void group_freeIsoUtils(HomIsoUtils *isoUtils);
+
+/*
+ * This functions takes a incomplete hom (map must be allocated but not set)
+ * and checks for isomorphism between hom->from and hom->to
+ */
+bool group_checkForIsomorphismFromGen(GroupHom *hom,
+                                      Vecu16 *genSetFrom,
+                                      Vecu16 *binom,
+                                      HomIsoUtils *isoUtils);
 
 #endif
