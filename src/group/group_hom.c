@@ -78,25 +78,27 @@ bool group_isIsomorphism(GroupHom *hom)
  * We have h(g) = y for g in a generating set and need to find
  * h(x) for any x in hom->from
  */
+// TODO: Depends on genSet being correctly sized and does not allow for
+// 0xffff termination
 void group_completeMapFromGen(GroupHom *hom,
                               Vecu16 *genSet,
                               Vecptr *genDecompVec)
 {
   u32 n = group_order(hom->from);
-  u16 x = 0xffff;
   u16 g = 0xffff;
   u16 mappedProd = 0xffff;
   Vecu16 *genDecomp;
   // For each group element and its decomp, calculate the image under the
   // homomorphism by evaluating the decomp sequence and multiplying it together
   for(i32 i = 0; i < n; i++) {
-    // group element at index i has decomp at index i
-    x = *vecu16_at(hom->from->set, i);
-    if(vecu16_contains(genSet, x, 0)) { // skip ele of genSet, already in map
+    // skip generating element already set in the beginning of the map
+    if(vecu16_contains(genSet, *vecu16_at(hom->from->set, i), 0)) {
       continue;
     }
+    // group element at index i has decomp at index i
     genDecomp = *vecptr_at(genDecompVec, i);
-    mappedProd = mapu16_mapEle(hom->map, *vecu16_at(genDecomp, 0));
+    g = *vecu16_at(genDecomp, 0);
+    mappedProd = mapu16_mapEle(hom->map, g);
     for(i32 j = 1; j < genDecomp->size; j++) {
       g = *vecu16_at(genDecomp, j);
       if(g == 0xffff) { // end of decomp is reached
@@ -105,9 +107,7 @@ void group_completeMapFromGen(GroupHom *hom,
       mappedProd = group_op(hom->to, mappedProd,
                             mapu16_mapEle(hom->map, g));
     }
-    // indicies in [0, genSet->size) are already filled by genSet elements
-    *vecu16_at(hom->map->domain, genSet->size + i) = x;
-    *vecu16_at(hom->map->codomain, genSet->size + i) = mappedProd;
+    *vecu16_at(hom->map->codomain, i) = mappedProd;
   }
 }
 
@@ -154,22 +154,31 @@ bool group_checkForIsomorphismFromGen(GroupHom *hom,
                                               binom,
                                               isoUtils->orderConstr,
                                               isoUtils->genConstrUtils);
-
+  // minGenSetConstr may not find a generating set after the next-to-final
+  // possible binom
+  if(!binomOk && *vecu16_at(isoUtils->genSetTo, 0) == 0xffff) {
+    return binomOk;
+  }
   perm_init(isoUtils->mperm);
   bool mpermOk = 1;
-  u32 ind = genSet->size;
-  u32 genSetSize = vecu16_indexOf(genSet, 0xffff, &ind, 0);
+  u32 genSetSize = genSet->size;
+  vecu16_indexOf(genSet, 0xffff, &genSetSize, 0);
   u32 mapInd = 0;
+  //TODO: Only consider maps with matching orders
+  vecu16_fill(hom->map->codomain, 0xffff);
+  u32 genInd = 0;
   while(mpermOk) {
     for(i32 i = 0; i < genSetSize; i++) {
+      vecu16_indexOf(hom->map->domain, *vecu16_at(genSet, i), &genInd, 0);
       mapInd = *vecu16_at(isoUtils->mperm, i);
-      *vecu16_at(hom->map->codomain, i) = *vecu16_at(isoUtils->genSetTo,
-                                                     mapInd);
+      *vecu16_at(hom->map->codomain, genInd) = *vecu16_at(isoUtils->genSetTo,
+                                                          mapInd);
     }
     group_completeMapFromGen(hom, genSet, isoUtils->genDecompVec);
-    if(mapu16_isInjective(hom->map) && group_hasHomProp(hom)) {
-      return binomOk;
-    }
+    bool isInj = mapu16_isInjective(hom->map);
+    bool hasHomProp = group_hasHomProp(hom);
+    printf("%i %i -> %i %i\n", *vecu16_at(binom, 0), *vecu16_at(binom, 1),
+                             isInj, hasHomProp);
     mpermOk = perm_shiftDefault(isoUtils->mperm);
   }
   return binomOk;

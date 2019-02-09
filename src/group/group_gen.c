@@ -89,12 +89,15 @@ void group_genDecomposition(Group *group,
     vecu16_fill(decomp, 0xffff);
   }
   u32 n = group_order(group);
+  u32 genSetSize = genSet->size;
+  vecu16_indexOf(genSet, 0xffff, &genSetSize, 0);
   bool isCommu = group_isCommutative(group);
   Vecu16 *util = vecu16_alloc(n);
+  vecu16_fill(util, 0xffff);
   u16 ele;
   i32 num = 0; // the number of "reached" elements
   // init util and genDecomp with the elements of genSet
-  for(i32 i = 0; i < genSet->size; i++) {
+  for(i32 i = 0; i < genSetSize; i++) {
     ele = *vecu16_at(genSet, i);
     if(ele == 0xffff) {
       break;
