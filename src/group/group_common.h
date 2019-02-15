@@ -10,9 +10,9 @@
 // Common Groups
 // ---------------------------------------------------------------------------
 
-Group *createCn_alloc(u32 n);
-Group *createSn_alloc(u32 n);
+Group *group_createCn_alloc(u32 n);
+Group *group_createSn_alloc(u32 n);
 
-Group *createDirectProduct_alloc(Group *a, Group *b);
+Group *group_createDirectProduct_alloc(Group *a, Group *b);
 
 #endif

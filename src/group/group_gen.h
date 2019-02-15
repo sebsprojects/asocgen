@@ -156,6 +156,7 @@ Group *group_generateSubgroup_alloc(Group *group, Vecu16 *set);
  */
 void group_truncGeneratedSet(Vecu16 *res, bool shrink);
 
+void group_printMinGenSetOrderDist(Group *group);
 
 
 #endif

@@ -11,17 +11,83 @@
 #include "group/group_gen.h"
 #include "group/group_hom.h"
 
+i32 main_4();
+i32 main_3();
 i32 main_2();
 i32 main_1();
 
-i32 main() {
-  return main_2();
+i32 main()
+{
+  return main_4();
 }
 
-i32 main_2() {
+i32 main_4()
+{
+  Group *c6 = group_createSn_alloc(3);
+  Group *c9 = group_createCn_alloc(9);
+  Group *p = group_createDirectProduct_alloc(c6, c9);
+
+  group_printMinGenSetOrderDist(p);
+
+  group_free(p);
+  group_free(c6);
+  group_free(c9);
+
+  return 0;
+}
+
+i32 main_3()
+{
+  Group *c3 = group_createCn_alloc(3);
+  Group *c18 = group_createCn_alloc(18);
+  //Group *c6 = group_createCn_alloc(6);
+  Group *c6 = group_createSn_alloc(3);
+  Group *c9 = group_createCn_alloc(9);
+  Group *p1 = group_createDirectProduct_alloc(c3, c18);
+  Group *p2 = group_createDirectProduct_alloc(c6, c9);
+
+  u32 n = group_order(p1);
+
+  Vecu16 *genFrom = group_minGeneratingSet_alloc(p1);
+  u32 genFromS = genFrom->size;
+  vecu16_indexOf(genFrom, 0xffff, &genFromS, 0);
+  vecu16_resize(genFrom, genFromS);
+  Vecu16 *binom = vecu16_alloc(n);
+  Mapu16 *map = mapu16_alloc(group_order(p1), p1->indexed);
+  vecu16_copyInto(p1->set, map->domain, 0);
+  GroupHom *hom = group_allocHom_ref(p1, p2, map);
+  HomIsoUtils *isoUtils = group_allocSetupIsoUtils(hom, genFrom);
+  binom_init(binom, 0, genFrom->size, 0);
+
+  vecu16_print(genFrom);
+  vecu16_print(isoUtils->genFromOrders);
+
+  bool ok = 1;
+  while(ok) {
+    ok = group_checkForIsomorphismFromGen(hom, genFrom, binom, isoUtils);
+  }
+
+  group_freeIsoUtils(isoUtils);
+  group_freeHom_ref(hom);
+  mapu16_free(map);
+  vecu16_free(binom);
+  vecu16_free(genFrom);
+
+  group_free(p2);
+  group_free(p1);
+  group_free(c9);
+  group_free(c6);
+  group_free(c18);
+  group_free(c3);
+
+  return 0;
+}
+
+i32 main_2()
+{
   // Create Sn
   u32 n = 5;
-  Group *sn = createSn_alloc(n);
+  Group *sn = group_createSn_alloc(n);
   u32 m = group_order(sn);
 
   // Create Sn re-named
@@ -35,8 +101,8 @@ i32 main_2() {
   mapu16_free(map);
 
   Vecu16 *binom = vecu16_alloc(m);
-  Vecu16 *orderConstr = vecu16_allocN(2, 2, 5);
-  Vecu16 *genFrom = vecu16_allocN(m);
+  Vecu16 *orderConstr = vecu16_allocN(2, 4, 4);
+  Vecu16 *genFrom = vecu16_alloc(m);
 
   // Find getFrom
   GenConstrUtils *constrUtils = group_allocSetupConstrUtils(sn, 2);
@@ -52,7 +118,7 @@ i32 main_2() {
   Mapu16 *homMap = mapu16_alloc(m, sn->indexed);
   vecu16_copyInto(sn->set, homMap->domain, 0);
   GroupHom *hom = group_allocHom_ref(sn, snCopy, homMap);
-  HomIsoUtils *isoUtils = group_allocSetupIsoUtils(hom, genFrom, orderConstr);
+  HomIsoUtils *isoUtils = group_allocSetupIsoUtils(hom, genFrom);
   binom_init(binom, 0, 2, 0);
   bool ok = 1;
   while(ok) {
@@ -73,7 +139,7 @@ i32 main_2() {
 
 i32 main_1() {
   u32 n = 5;
-  Group *sn = createSn_alloc(n);
+  Group *sn = group_createSn_alloc(n);
   u32 m = group_order(sn);
 
   Vecu16 *res = vecu16_alloc(m);

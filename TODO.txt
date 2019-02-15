@@ -1,29 +1,23 @@
-* Urgent
-** TODO group_gen: Make independent of neutral == 0 and improve return value
-** TODO ring: Function to construct Z/pZ
-** TODO ring: write test with Z/pZ
-** TODO ring: quaternion ring implementation
-** TODO common: change sort to have end excluded
+-- Urgent
+------------------------------------------------------------------------------
+* gen: Think about truly binom-incremental genSet functions, i.e. that only
+       progress one binom shift at a time no matter if we find a genSet or not
+* gen: Make sure that all functions work with a genSet that is 0xffff-terminated
+* all: Make independent of neutral == 0 (elementOrder, ...)
 
-* Short Term
-** TODO ring: polynomial ring approximation
-** TODO ring: poly-mult and poly-division algorithms
-** TODO ring: find irreducible elements/polynomials
 
-* Features
-** TODO General: Devise text format for storing group mtabs (incompl / groups)
+-- Short Term
+------------------------------------------------------------------------------
 
-* Housekeeping
-** TODO Think about usage of 0xffff as "error value" vs 0xffffffff maybe
-** TODO group_gen: rewrite truncGenSet with array functions
-** TODO Check if array access in i-j loop can be move outside j-loopy
-** TODO Adjust for looks with abelian check (hom)
-** TODO Shrinkage behavior with memcpy and so on?
-** TODO Check i-j loops for completely <= vs < thing
-** TODO Check uint32 vs uint16 vs int32 etc. for loops
-** TODO Think about index -> element gop / map for performance's sake
 
-* Long Term
-** TODO Asocgen: Multi-threading
-** TODO Asocgen: Start with subgroup / partially filled table
-** TODO Asocgen: Write to progress file
+-- Features
+------------------------------------------------------------------------------
+* all: Devise text format for storing group mtabs (incompl / groups)
+
+
+-- Housekeeping
+------------------------------------------------------------------------------
+* all: Think about errors, BOUNDS_CHECK
+* all: Check if array access in i-j loop can be move outside j-loopy
+* all: Check that we always check for isComm in an efficient way
+* doc: Make better doc of expected input: Vec-sizes, Vec-init state etc.

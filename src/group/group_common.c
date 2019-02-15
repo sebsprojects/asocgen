@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 
-Group *createCn_alloc(u32 n)
+Group *group_createCn_alloc(u32 n)
 {
   Group *group = group_alloc(n, 1);
   for(i32 i = 0; i < n; i++) {
@@ -21,7 +21,7 @@ Group *createCn_alloc(u32 n)
   return group;
 }
 
-Group *createDirectProduct_alloc(Group *a, Group *b)
+Group *group_createDirectProduct_alloc(Group *a, Group *b)
 {
   u32 n = group_order(a);
   u32 m = group_order(b);
@@ -49,7 +49,7 @@ Group *createDirectProduct_alloc(Group *a, Group *b)
 // Sn
 // ---------------------------------------------------------------------------
 
-Group *createSn_alloc(u32 n) {
+Group *group_createSn_alloc(u32 n) {
 //#ifdef BOUNDS_CHECK
 //  if(n > 8) {
 //    printError("error: can only create Sn up to n <= 8");

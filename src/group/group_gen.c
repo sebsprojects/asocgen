@@ -3,6 +3,8 @@
 #include <elfc_perm.h>
 
 #include <stdlib.h>
+#include <stdio.h>
+
 
 // --------------------------------------------------------------------------
 // Generating from group elements
@@ -364,4 +366,43 @@ void group_truncGeneratedSet(Vecu16 *res, bool shrink) {
   if(shrink) {
     vecu16_resize(res, last + 1);
   }
+}
+
+void group_printMinGenSetOrderDist(Group *group)
+{
+  u32 n = group_order(group);
+  Vecu16 *res = vecu16_alloc(n);
+  Vecu16 *binom = vecu16_alloc(n);
+  Vecu16 *util1 = vecu16_alloc(n);
+  Vecu16 *util2 = vecu16_alloc(n);
+
+  binom_init(binom, 0, 1, 0);
+  bool ok = 1;
+  u32 minSize = 0;
+  u32 ind = 0;
+  while(ok) {
+    // check if we can continue shifting biom
+    ok = group_minGeneratingSet_noalloc(group, res, binom, util1, util2);
+    if(*vecu16_at(res, 0) != 0xffff) {
+      if(minSize == 0) {
+        vecu16_indexOf(res, 0xffff, &minSize, 0);
+      }
+      // exit after visiting all min gen sets
+      vecu16_indexOf(res, 0xffff, &ind, 0);
+      if(ind > minSize) {
+        break;
+      }
+      printf("Found min gen set of size with orders:");
+      for(i32 i = 0; i < minSize; i++) {
+        u16 ord = group_elementOrder(group, *vecu16_at(res, i));
+        printf(" %i", ord);
+      }
+      printf("\n");
+    }
+  }
+
+  vecu16_free(util2);
+  vecu16_free(util1);
+  vecu16_free(binom);
+  vecu16_free(res);
 }

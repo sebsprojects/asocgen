@@ -60,8 +60,10 @@ bool group_isIsomorphism(GroupHom *hom);
  * elements from genSet, expand the map to all elements of
  * hom->from. This may or may not result in a valid homomorphism
  *
- * For speed it is required that hom->map is filled from the beginning with
- * the partial mapping
+ * hom->map is expected to
+ *   a) have a complete domain, i.e. hom->map->domain == hom->from->set
+ *   b) have a codomain filled with 0xffff expect for
+ *   c) images for all elements of genSet
  */
 void group_completeMapFromGen(GroupHom *hom,
                               Vecu16 *genSet,
@@ -72,17 +74,16 @@ void group_completeMapFromGen(GroupHom *hom,
  * without any allocations. Used to call minGeneratingSetConstr_noalloc
  */
 struct HomIsoUtils {
-  Vecu16 *genSetTo;               // The genSet of hom->to
+  Vecu16 *genTo;                  // The genSet of hom->to
   Vecu16 *mperm;                  // Perm for mapping genSets onto each other
+  Vecu16 *genFromOrders;          // Store the ele orders for genFrom
   Vecptr *genDecompVec;           // Full decomp into elements from genSetFrom
-  Vecu16 *orderConstr;            // For group_minGeneratingSetConstr
+  Vecu16 *genOrderConstr;            // For group_minGeneratingSetConstr
   GenConstrUtils *genConstrUtils; // For group_minGeneratingSetConstr
 };
 typedef struct HomIsoUtils HomIsoUtils;
 
-HomIsoUtils *group_allocSetupIsoUtils(GroupHom *hom,
-                                      Vecu16 *genFrom,
-                                      Vecu16 *orderConstr);
+HomIsoUtils *group_allocSetupIsoUtils(GroupHom *hom, Vecu16 *genFrom);
 void group_freeIsoUtils(HomIsoUtils *isoUtils);
 
 /*
