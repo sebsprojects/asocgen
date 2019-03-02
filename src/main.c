@@ -10,7 +10,9 @@
 #include "group/group_common.h"
 #include "group/group_gen.h"
 #include "group/group_hom.h"
+#include "group/group_io.h"
 
+i32 main_5();
 i32 main_4();
 i32 main_3();
 i32 main_2();
@@ -18,7 +20,15 @@ i32 main_1();
 
 i32 main()
 {
-  return main_4();
+  return main_5();
+}
+
+i32 main_5()
+{
+  Group *c = group_createSn_alloc(5);
+  group_writeToFile(c);
+  group_free(c);
+  return 0;
 }
 
 i32 main_4()

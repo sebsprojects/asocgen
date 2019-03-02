@@ -375,7 +375,6 @@ void group_printMinGenSetOrderDist(Group *group)
   Vecu16 *binom = vecu16_alloc(n);
   Vecu16 *util1 = vecu16_alloc(n);
   Vecu16 *util2 = vecu16_alloc(n);
-
   binom_init(binom, 0, 1, 0);
   bool ok = 1;
   u32 minSize = 0;
@@ -400,7 +399,6 @@ void group_printMinGenSetOrderDist(Group *group)
       printf("\n");
     }
   }
-
   vecu16_free(util2);
   vecu16_free(util1);
   vecu16_free(binom);
