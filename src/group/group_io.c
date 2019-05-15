@@ -7,54 +7,64 @@
 #include <string.h>
 #include <math.h>
 
+
 static const f64 baseLog16 = 1.0 / log(16.0);
-static const u32 lineLength = 80;
 
 
-void group_writeToFile(Group *group)
+bool group_writeToFile(Group *group, char *path)
 {
-  // TODO: Makes sure group is indexed
+  if(group->indexed) {
+    return group_writeIndexedToFile(group, path);
+  } else {
+    Group *g = group_getIndexedCopy_alloc(group);
+    bool ok = group_writeIndexedToFile(g, path);
+    group_free(g);
+    return ok;
+  }
+}
+
+bool group_writeIndexedToFile(Group *group, char *path)
+{
+  return 0;
+}
+
+i32 group_sprintGTab(char *buf, Group *group)
+{
   u16 n = group_order(group);
   u16 maxEleLen = floor(log((f64) n) * baseLog16) + 1;
-  u16 elePerLine = lineLength / maxEleLen;
-  u16 numLines = 1 + (n * n / elePerLine);
-  u16 ele = 0;
   char formatString[4];
   formatString[0] = '%';
   formatString[1] = maxEleLen + '0';
   formatString[2] = 'x';
   formatString[3] = '\0';
-  char *fbuf = malloc(n * n * maxEleLen + numLines + 100); // \n * numLines
-  char *hbuf = malloc(n * n * maxEleLen + 100);
-  fbuf[0] = '\0';
-  hbuf[0] = '\0';
-  u32 foffs = strlen(fbuf);
-  u32 hoffs = strlen(hbuf);
+  u32 offs = strlen(buf);
+  u16 ele = 0;
   for(i32 i = 0; i < n * n; i++) {
     ele = *vecu16_at(group->gtab, i);
-    foffs += sprintf(fbuf + foffs, formatString, ele);
-    hoffs += sprintf(hbuf + hoffs, "%x", ele);
-    if(i % elePerLine == elePerLine - 1) {
-      foffs += sprintf(fbuf + foffs, "\n");
-    }
+    offs += sprintf(buf + offs, formatString, ele); // %[maxEleLen]x
   }
-  if((n * n) % elePerLine != 0) {
-    sprintf(fbuf + foffs, "\n"); // make sure we \n terminate the string
-  }
-  printf("%s\n", fbuf);
-  printf("fbuf=%lu :: hbuf=%lu\n", strlen(fbuf), strlen(hbuf));
-  u64 hash = hash_djb2Reverse(hbuf);
-  char fileName[16 + 1 + 5 + 100]; // 16 char hash + _ + group_order + buffer
-  fileName[0] = '\0';
-  foffs = sprintf(fileName, "%05i_", n);
-  foffs += hash_sprintHash(fileName + foffs, hash);
-  sprintf(fileName + foffs, ".txt");
-  printf("%s\n", fileName);
-  free(fbuf);
-  free(hbuf);
+  return offs;
 }
 
-void group_readFromFile(Group *group)
+i32 group_sprintHash(char *buf, char *gtabBuf)
 {
+  u64 hash = hash_djb2(gtabBuf);
+  return hash_sprintHash(buf, hash);
+}
 
+i32 group_sprintFileName(char *buf, Group* group, char *gtabBuf)
+{
+  u32 offs = sprintf(buf, "%05i_", group_order(group));
+  offs += group_sprintHash(buf + offs, gtabBuf);
+  offs += sprintf(buf + offs, ".txt");
+  return offs;
+}
+
+i32 group_sprintPreamble(char *buf)
+{
+  return 0;
+}
+
+void group_readFromFile(char *path)
+{
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include <elfc_perm.h>
 #include <elfc_veci32.h>
@@ -26,7 +27,26 @@ i32 main()
 i32 main_5()
 {
   Group *c = group_createSn_alloc(5);
-  group_writeToFile(c);
+
+  u16 n = group_order(c);
+  f64 baseLog16 = 1.0 / log(16.0);
+  u16 maxEleLen = floor(log((f64) n) * baseLog16) + 1;
+  char *buf = malloc(n * n * maxEleLen + 100);
+  char *hashBuf = malloc(30);
+  char *fnameBuf = malloc(100);
+  hashBuf[0] = '\0';
+  buf[0] = '\0';
+  fnameBuf[0] = '\0';
+  group_sprintGTab(buf, c);
+  group_sprintHash(hashBuf, buf);
+  group_sprintFileName(fnameBuf, c, buf);
+  printf("%s\n", hashBuf);
+  printf("%s\n", fnameBuf);
+
+  free(fnameBuf);
+  free(buf);
+  free(hashBuf);
+
   group_free(c);
   return 0;
 }
