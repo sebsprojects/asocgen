@@ -4,16 +4,14 @@
 #include "group.h"
 
 
-struct GroupMetaData {
-  // Write specific
-  char *date;
-  char *version;
-  // Group specific
+struct GroupMetaInfo {
   char *name;
+  u64 djb2Hash;
+  u16 order;
   bool isCommutative;
   Vecu16 *minGenSet;
 };
-typedef struct GroupMetaData GroupMetaData;
+typedef struct GroupMetaInfo GroupMetaInfo;
 
 /*
  * Tries to write the group to a file according to the following procedure:
@@ -45,8 +43,12 @@ bool group_writeToFile(Group *group, char *path);
 bool group_writeIndexedToFile(Group *group, char *path);
 
 i32 group_sprintGTab(char *buf, Group *group);
-i32 group_sprintHash(char *buf, char *gtabBuf);
-i32 group_sprintFileName(char *buf, Group* group, char *gtabBuf);
+i32 group_sprintFileName(char *buf, Group* group, u64 hash);
+i32 group_sprintHeader(char *buf, GroupMetaInfo meta);
+
+i32 group_sprintPreamble(char *buf);
+i32 group_sprintFileMeta(char *buf);
+i32 group_sprintGroupMeta(char *buf, GroupMetaInfo meta);
 
 Group* group_readFromFile_alloc(char *path);
 

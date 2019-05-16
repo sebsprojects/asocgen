@@ -6,6 +6,7 @@
 #include <elfc_perm.h>
 #include <elfc_veci32.h>
 #include <elfc_mapu16.h>
+#include <elfc_hash.h>
 
 #include "group/group.h"
 #include "group/group_common.h"
@@ -18,6 +19,7 @@ i32 main_4();
 i32 main_3();
 i32 main_2();
 i32 main_1();
+
 
 i32 main()
 {
@@ -32,20 +34,31 @@ i32 main_5()
   f64 baseLog16 = 1.0 / log(16.0);
   u16 maxEleLen = floor(log((f64) n) * baseLog16) + 1;
   char *buf = malloc(n * n * maxEleLen + 100);
-  char *hashBuf = malloc(30);
   char *fnameBuf = malloc(100);
-  hashBuf[0] = '\0';
+  char *headerBuf = malloc(1000);
   buf[0] = '\0';
   fnameBuf[0] = '\0';
+  headerBuf[0] = '\0';
   group_sprintGTab(buf, c);
-  group_sprintHash(hashBuf, buf);
-  group_sprintFileName(fnameBuf, c, buf);
-  printf("%s\n", hashBuf);
-  printf("%s\n", fnameBuf);
 
+  u64 hash = hash_djb2(buf);
+
+  group_sprintFileName(fnameBuf, c, hash);
+
+  GroupMetaInfo cInfo;
+  cInfo.name ="S5";
+  cInfo.djb2Hash = hash;
+  cInfo.order = group_order(c);
+  cInfo.isCommutative = group_isCommutative(c);
+  cInfo.minGenSet = 0;
+  group_sprintHeader(headerBuf, cInfo);
+
+  printf("%s\n", fnameBuf);
+  printf("\n%s\n", headerBuf);
+
+  free(headerBuf);
   free(fnameBuf);
   free(buf);
-  free(hashBuf);
 
   group_free(c);
   return 0;

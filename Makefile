@@ -15,6 +15,9 @@ ifeq ($(BOUNDS_CHECK), 1)
 CC_FLAGS += -DBOUNDS_CHECK
 endif
 
+VERSION = undefined
+CC_FLAGS += -DVERSION='"$(VERSION)"'
+
 # ----------------------------------------------------------------------------
 
 INCLUDES = -I src/
