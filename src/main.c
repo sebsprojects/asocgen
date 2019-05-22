@@ -14,16 +14,35 @@
 #include "group/group_hom.h"
 #include "group/group_io.h"
 
+i32 main_6();
 i32 main_5();
 i32 main_4();
 i32 main_3();
 i32 main_2();
 i32 main_1();
 
-
 i32 main()
 {
-  return main_5();
+  return main_6();
+}
+
+i32 main_6()
+{
+  Group *g = group_createSn_alloc(4);
+
+  GroupMetaInfo meta;
+  meta.name ="S5";
+  meta.djb2Hash = 0;
+  meta.order = group_order(g);
+  meta.isCommutative = group_isCommutative(g);
+  meta.minGenSet = group_minGeneratingSet_alloc(g);
+  group_truncGeneratedSet(meta.minGenSet, 1);
+
+  group_writeIndexedToFile(g, meta, ".");
+
+  vecu16_free(meta.minGenSet);
+  group_free(g);
+  return 0;
 }
 
 i32 main_5()
@@ -50,15 +69,18 @@ i32 main_5()
   cInfo.djb2Hash = hash;
   cInfo.order = group_order(c);
   cInfo.isCommutative = group_isCommutative(c);
-  cInfo.minGenSet = 0;
+  cInfo.minGenSet = group_minGeneratingSet_alloc(c);
+  group_truncGeneratedSet(cInfo.minGenSet, 1);
   group_sprintHeader(headerBuf, cInfo);
 
   printf("%s\n", fnameBuf);
   printf("\n%s\n", headerBuf);
+  printf("%s\n", buf);
 
   free(headerBuf);
   free(fnameBuf);
   free(buf);
+  vecu16_free(cInfo.minGenSet);
 
   group_free(c);
   return 0;

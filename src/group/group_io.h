@@ -39,8 +39,8 @@ typedef struct GroupMetaInfo GroupMetaInfo;
  * a filesystem related error, 0 is returned
  * If the file was written successfully, 1 is returned
  */
-bool group_writeToFile(Group *group, char *path);
-bool group_writeIndexedToFile(Group *group, char *path);
+bool group_writeToFile(Group *group, GroupMetaInfo meta, char *path);
+bool group_writeIndexedToFile(Group *group, GroupMetaInfo meta, char *path);
 
 i32 group_sprintGTab(char *buf, Group *group);
 i32 group_sprintFileName(char *buf, Group* group, u64 hash);

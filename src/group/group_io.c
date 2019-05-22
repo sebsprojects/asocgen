@@ -12,21 +12,54 @@
 static const f64 baseLog16 = 1.0 / log(16.0);
 
 
-bool group_writeToFile(Group *group, char *path)
+bool group_writeToFile(Group *group, GroupMetaInfo meta, char *path)
 {
   if(group->indexed) {
-    return group_writeIndexedToFile(group, path);
+    return group_writeIndexedToFile(group, meta, path);
   } else {
     Group *g = group_getIndexedCopy_alloc(group);
-    bool ok = group_writeIndexedToFile(g, path);
+    bool ok = group_writeIndexedToFile(g, meta, path);
     group_free(g);
     return ok;
   }
 }
 
-bool group_writeIndexedToFile(Group *group, char *path)
+bool group_writeIndexedToFile(Group *group, GroupMetaInfo meta, char *path)
 {
-  return 0;
+  u16 n = group_order(group);
+  u16 maxEleLen = floor(log((f64) n) * baseLog16) + 1;
+  char *fnameBuf = malloc(strlen(path) + 100);
+  char *contentBuf = malloc(n * n * maxEleLen + 100);
+  contentBuf[0] = '\0';
+  fnameBuf[0] = '\0';
+  group_sprintGTab(contentBuf, group);
+  u64 hash = hash_djb2(contentBuf);
+  strcpy(fnameBuf, path);
+  i32 offs = strlen(fnameBuf);
+  offs += sprintf(fnameBuf + offs, "/");
+  group_sprintFileName(fnameBuf + offs, group, hash);
+  printf("%s\n", fnameBuf);
+  FILE *f = 0;
+  if((f = fopen(fnameBuf, "r")) != 0) { // check if file exists
+    fclose(f);
+    free(contentBuf);
+    free(fnameBuf);
+    return 0;
+  }
+  if((f = fopen(fnameBuf, "w")) == 0) { // check if we could open file for wr
+    free(contentBuf);
+    free(fnameBuf);
+    return 0;
+  }
+  char *headerBuf = malloc(1000); // TODO: Improve this value
+  headerBuf[0] = '\0';
+  group_sprintHeader(headerBuf, meta);
+  fprintf(f, "%s\n%s\n", headerBuf, contentBuf);
+  fclose(f);
+  free(contentBuf);
+  free(fnameBuf);
+  free(headerBuf);
+  return 1;
 }
 
 i32 group_sprintGTab(char *buf, Group *group)
@@ -97,6 +130,13 @@ i32 group_sprintGroupMeta(char *buf, GroupMetaInfo meta)
   offs += sprintf(buf + offs, "# Group Order: %i\n", meta.order);
   offs += sprintf(buf + offs, "# Group Commutative: %i\n", meta.isCommutative);
   offs += sprintf(buf + offs, "# Group minGenSet: ");
+  if(meta.minGenSet != 0) {
+    Vecu16 *gen = meta.minGenSet;
+    for(i32 i = 0; i < gen->size - 1; i++) {
+      offs += sprintf(buf + offs, "%x, ", *vecu16_at(gen, i));
+    }
+    offs += sprintf(buf + offs, "%x", *vecu16_at(gen, gen->size - 1));
+  }
   return offs;
 }
 
