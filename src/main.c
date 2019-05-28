@@ -14,6 +14,7 @@
 #include "group/group_hom.h"
 #include "group/group_io.h"
 
+i32 main_7();
 i32 main_6();
 i32 main_5();
 i32 main_4();
@@ -23,7 +24,18 @@ i32 main_1();
 
 i32 main()
 {
-  return main_6();
+  return main_7();
+}
+
+i32 main_7()
+{
+  Group *g = group_readGroupFromFile_alloc("./00024n_078a417cf4412f95.txt");
+  if(g == 0) {
+    printf("Error while reading group file\n");
+  }
+  group_printSummary(g);
+  group_free(g);
+  return 0;
 }
 
 i32 main_6()

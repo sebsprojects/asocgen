@@ -145,6 +145,59 @@ i32 group_sprintGroupMeta(char *buf, GroupMetaInfo meta)
 // Reading
 // ---------------------------------------------------------------------------
 
-void group_readFromFile(char *path)
+Group *group_readGroupFromFile_alloc(char *path)
 {
+  FILE *f = 0;
+  if((f = fopen(path, "r")) == 0) { // check if file exists
+    return 0;
+  }
+  char *fileName = strchr(path, '/') + 1;
+  u16 order = 0xffff;
+  sscanf(fileName, "%5hu", &order);
+  char c = fgetc(f);
+  i64 startPos = -1;
+  if(c == EOF) {
+    fclose(f);
+    return 0;
+  }
+  while(c == '#') {
+    c = fgetc(f);
+    while(c != '\n') {
+      c = fgetc(f);
+    }
+    startPos = ftell(f);
+    c = fgetc(f);
+  }
+  if(c == EOF) {
+    fclose(f);
+    return 0;
+  }
+  i32 entryLen = floor(log((f64) order) * baseLog16) + 1;
+  // Alternative: Get the table-entry char-length by counting spaces up to the
+  // first entry which should be 0
+  //while(c == ' ') {
+  //  entryLen++;
+  //  c = fgetc(f);
+  //}
+  fseek(f, startPos, SEEK_SET);
+  char stringToken[5];
+  Group *group = group_alloc(order, 1);
+  vecu16_setToRange(group->set, 0, order, 0);
+  u16 entry = 0xffff;
+  //TODO: This could probably done by fscanf but I could not make it work with
+  //the whitespace and non-delimiter formatting
+  u32 count = 0;
+  while(!feof(f)) {
+    fgets(stringToken, entryLen + 1, f);
+    if(stringToken[0] == '\n') {
+      break;
+    }
+    sscanf(stringToken, "%hx", &entry);
+    *vecu16_at(group->gtab, count) = entry;
+    count++;
+    //printf("@%u/%u :: Read :: String :%s: :: Entry :%u:\n",
+    //       count, order * order, stringToken, entry);
+  }
+  fclose(f);
+  return group;
 }

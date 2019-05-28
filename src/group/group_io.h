@@ -50,7 +50,11 @@ i32 group_sprintPreamble(char *buf);
 i32 group_sprintFileMeta(char *buf);
 i32 group_sprintGroupMeta(char *buf, GroupMetaInfo meta);
 
-Group* group_readFromFile_alloc(char *path);
+/*
+ * Tries to read a group from path
+ */
+Group *group_readGroupFromFile_alloc(char *path);
 
+GroupMetaInfo *group_readMetaFromFile_alloc(char *path);
 
 #endif
