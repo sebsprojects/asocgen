@@ -3,13 +3,15 @@
 
 #include "group.h"
 
-
+/*
+ * Only stack alloc this struct, minGenSet is a primitive array to enable this.
+ */
 struct GroupMetaInfo {
   char *name;
-  u64 djb2Hash;
   u16 order;
   bool isCommutative;
-  Vecu16 *minGenSet;
+  u16 minGenSetSize;
+  u16 minGenSet[16];
 };
 typedef struct GroupMetaInfo GroupMetaInfo;
 
@@ -50,11 +52,8 @@ i32 group_sprintPreamble(char *buf);
 i32 group_sprintFileMeta(char *buf);
 i32 group_sprintGroupMeta(char *buf, GroupMetaInfo meta);
 
-/*
- * Tries to read a group from path
- */
 Group *group_readGroupFromFile_alloc(char *path);
-
-GroupMetaInfo *group_readMetaFromFile_alloc(char *path);
+GroupMetaInfo group_readInfoFromFileName_alloc(char *path);
+GroupMetaInfo group_readMetaFromFile_alloc(char *path);
 
 #endif

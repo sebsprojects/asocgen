@@ -24,7 +24,7 @@ i32 main_1();
 
 i32 main()
 {
-  return main_7();
+  return main_6();
 }
 
 i32 main_7()
@@ -42,17 +42,18 @@ i32 main_6()
 {
   Group *g = group_createSn_alloc(4);
 
+  Vecu16 *mgs = group_minGeneratingSet_alloc(g);
+  group_truncGeneratedSet(mgs, 1);
   GroupMetaInfo meta;
-  meta.name ="S5";
-  meta.djb2Hash = 0;
+  meta.name = "S5";
   meta.order = group_order(g);
   meta.isCommutative = group_isCommutative(g);
-  meta.minGenSet = group_minGeneratingSet_alloc(g);
-  group_truncGeneratedSet(meta.minGenSet, 1);
+  meta.minGenSetSize = mgs->size;
+  vecu16_copyIntoArray(meta.minGenSet, mgs, mgs->size);
 
   group_writeIndexedToFile(g, meta, ".");
 
-  vecu16_free(meta.minGenSet);
+  vecu16_free(mgs);
   group_free(g);
   return 0;
 }
@@ -78,11 +79,8 @@ i32 main_5()
 
   GroupMetaInfo cInfo;
   cInfo.name ="S5";
-  cInfo.djb2Hash = hash;
   cInfo.order = group_order(c);
   cInfo.isCommutative = group_isCommutative(c);
-  cInfo.minGenSet = group_minGeneratingSet_alloc(c);
-  group_truncGeneratedSet(cInfo.minGenSet, 1);
   group_sprintHeader(headerBuf, cInfo);
 
   printf("%s\n", fnameBuf);
@@ -92,7 +90,6 @@ i32 main_5()
   free(headerBuf);
   free(fnameBuf);
   free(buf);
-  vecu16_free(cInfo.minGenSet);
 
   group_free(c);
   return 0;

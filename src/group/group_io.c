@@ -124,18 +124,17 @@ i32 group_sprintGroupMeta(char *buf, GroupMetaInfo meta)
 {
   i32 offs = 0;
   offs += sprintf(buf + offs, "# Group Name: %s\n", meta.name);
-  offs += sprintf(buf + offs, "# Group djb2-Hash: ");
-  offs += hash_sprintHash(buf + offs, meta.djb2Hash);
-  offs += sprintf(buf + offs, "\n");
+  // offs += sprintf(buf + offs, "# Group djb2-Hash: ");
+  // offs += hash_sprintHash(buf + offs, meta.djb2Hash);
+  // offs += sprintf(buf + offs, "\n");
   offs += sprintf(buf + offs, "# Group Order: %i\n", meta.order);
   offs += sprintf(buf + offs, "# Group Commutative: %i\n", meta.isCommutative);
-  offs += sprintf(buf + offs, "# Group minGenSet: ");
+  offs += sprintf(buf + offs, "# Group MinGenSet: ");
   if(meta.minGenSet != 0) {
-    Vecu16 *gen = meta.minGenSet;
-    for(i32 i = 0; i < gen->size - 1; i++) {
-      offs += sprintf(buf + offs, "%x, ", *vecu16_at(gen, i));
+    for(i32 i = 0; i < meta.minGenSetSize - 1; i++) {
+      offs += sprintf(buf + offs, "%x, ", meta.minGenSet[i]);
     }
-    offs += sprintf(buf + offs, "%x", *vecu16_at(gen, gen->size - 1));
+    offs += sprintf(buf + offs, "%x", meta.minGenSet[meta.minGenSetSize - 1]);
   }
   return offs;
 }
@@ -187,7 +186,7 @@ Group *group_readGroupFromFile_alloc(char *path)
   //TODO: This could probably done by fscanf but I could not make it work with
   //the whitespace and non-delimiter formatting
   u32 count = 0;
-  while(!feof(f)) {
+  while(!feof(f) && !(count >= order * order)) {
     fgets(stringToken, entryLen + 1, f);
     if(stringToken[0] == '\n') {
       break;
@@ -200,4 +199,19 @@ Group *group_readGroupFromFile_alloc(char *path)
   }
   fclose(f);
   return group;
+}
+
+GroupMetaInfo group_readInfoFromFileName_alloc(char *path)
+{
+  GroupMetaInfo meta;
+  meta.name = 0;
+  meta.minGenSetSize = 0;
+  memset(meta.minGenSet, 0xffff, 16 * sizeof(u16));
+  return meta;
+}
+
+GroupMetaInfo group_readMetaFromFile_alloc(char *path)
+{
+  GroupMetaInfo meta;
+  return meta;
 }
