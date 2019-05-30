@@ -144,21 +144,29 @@ i32 group_sprintGroupMeta(char *buf, GroupMetaInfo meta)
 // Reading
 // ---------------------------------------------------------------------------
 
+u16 group_readOrderFromFileName(char *path)
+{
+  char *fileName = strchr(path, '/') + 1;
+  u16 order = 0xffff;
+  sscanf(fileName, "%5hu", &order);
+  return order;
+}
+
+bool group_readCommutativeFromFileName(char *path)
+{
+  char *fileName = strchr(path, '/') + 1;
+  return fileName[5] == 'c';
+}
+
 Group *group_readGroupFromFile_alloc(char *path)
 {
   FILE *f = 0;
   if((f = fopen(path, "r")) == 0) { // check if file exists
     return 0;
   }
-  char *fileName = strchr(path, '/') + 1;
-  u16 order = 0xffff;
-  sscanf(fileName, "%5hu", &order);
+  u16 order = group_readOrderFromFileName(path);
   char c = fgetc(f);
   i64 startPos = -1;
-  if(c == EOF) {
-    fclose(f);
-    return 0;
-  }
   while(c == '#') {
     c = fgetc(f);
     while(c != '\n') {
@@ -201,17 +209,63 @@ Group *group_readGroupFromFile_alloc(char *path)
   return group;
 }
 
-GroupMetaInfo group_readInfoFromFileName_alloc(char *path)
+GroupMetaInfo group_readMetaFromFile(char *path)
 {
   GroupMetaInfo meta;
-  meta.name = 0;
+  memset(meta.name, 0, GROUP_META_NAME_LEN * sizeof(char));
+  meta.order = 0;
+  meta.isCommutative = 0;
   meta.minGenSetSize = 0;
-  memset(meta.minGenSet, 0xffff, 16 * sizeof(u16));
-  return meta;
-}
-
-GroupMetaInfo group_readMetaFromFile_alloc(char *path)
-{
-  GroupMetaInfo meta;
+  memset(meta.minGenSet, 0, GROUP_META_MINGENSET_LEN * sizeof(u16));
+  FILE *f = 0;
+  char line[81]; // Support line length of 80
+  if((f = fopen(path, "r")) == 0) { // check if file exists
+    return meta;
+  }
+  char c = fgetc(f);
+  while(c == '#') {
+    memset(line, '\0', 81);
+    line[0] = c;
+    // Get the whole line up to 80
+    for(i32 i = 0; i < 79; i++) {
+      c = fgetc(f);
+      if(c == '\n') {
+        break;
+      }
+      line[i + 1] = c; // offset by 1 because line[0] == '#' by above
+    }
+    // Make sure we read the whole line. If not do nothing and discard
+    // everything until the next line. Using a partial line may lead to wrong
+    // meta info, thus cannot be allowed
+    if(c == '\n') {
+      if(!strncmp(line, "# Group Name: ", 14)) {
+        strncpy(meta.name, line + 14, GROUP_META_NAME_LEN - 1);
+      }
+      if(!strncmp(line, "# Group Order: ", 15)) {
+        i32 ord = -1;
+        i32 ok = sscanf(line + 15, "%hu", &meta.order);
+        if(ok == 1 && ord > 0) {
+          meta.order = ord;
+        }
+      }
+      if(!strncmp(line, "# Group Commutative: ", 21)) {
+        i32 isComm = -1;
+        i32 ok = sscanf(line + 21, "%i", &isComm);
+        if(ok == 1 && (isComm == 1 || isComm == 0)) {
+          meta.isCommutative = isComm;
+        }
+      }
+      if(!strncmp(line, "# Group MinGenSet: ", 19)) {
+        // TODO
+      }
+    } else {
+      c = fgetc(f);
+      while(c != '\n' && c != EOF) {
+        c = fgetc(f);
+      }
+    }
+    c = fgetc(f); // First char of new line
+  }
+  fclose(f);
   return meta;
 }

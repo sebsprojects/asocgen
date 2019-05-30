@@ -3,15 +3,19 @@
 
 #include "group.h"
 
+
+#define GROUP_META_NAME_LEN 32
+#define GROUP_META_MINGENSET_LEN 16
+
 /*
  * Only stack alloc this struct, minGenSet is a primitive array to enable this.
  */
 struct GroupMetaInfo {
-  char *name;
+  char name[GROUP_META_NAME_LEN];
   u16 order;
   bool isCommutative;
   u16 minGenSetSize;
-  u16 minGenSet[16];
+  u16 minGenSet[GROUP_META_MINGENSET_LEN];
 };
 typedef struct GroupMetaInfo GroupMetaInfo;
 
@@ -52,8 +56,10 @@ i32 group_sprintPreamble(char *buf);
 i32 group_sprintFileMeta(char *buf);
 i32 group_sprintGroupMeta(char *buf, GroupMetaInfo meta);
 
+u16 group_readOrderFromFileName(char *path);
+bool group_readCommutativeFromFileName(char *path);
+
 Group *group_readGroupFromFile_alloc(char *path);
-GroupMetaInfo group_readInfoFromFileName_alloc(char *path);
-GroupMetaInfo group_readMetaFromFile_alloc(char *path);
+GroupMetaInfo group_readMetaFromFile(char *path);
 
 #endif

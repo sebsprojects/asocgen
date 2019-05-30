@@ -14,6 +14,7 @@
 #include "group/group_hom.h"
 #include "group/group_io.h"
 
+i32 main_8();
 i32 main_7();
 i32 main_6();
 i32 main_5();
@@ -24,12 +25,21 @@ i32 main_1();
 
 i32 main()
 {
-  return main_6();
+  return main_8();
+}
+
+i32 main_8()
+{
+  GroupMetaInfo m = group_readMetaFromFile("./groups/00024n_078a417cf4412f95.txt");
+  printf("meta.name: :%s:\n", m.name);
+  printf("meta.order: :%u:\n", m.order);
+  printf("meta.isCommutative: :%u:\n", m.isCommutative);
+  return 0;
 }
 
 i32 main_7()
 {
-  Group *g = group_readGroupFromFile_alloc("./00024n_078a417cf4412f95.txt");
+  Group *g = group_readGroupFromFile_alloc("./groups/00024n_078a417cf4412f95.txt");
   if(g == 0) {
     printf("Error while reading group file\n");
   }
@@ -45,7 +55,7 @@ i32 main_6()
   Vecu16 *mgs = group_minGeneratingSet_alloc(g);
   group_truncGeneratedSet(mgs, 1);
   GroupMetaInfo meta;
-  meta.name = "S5";
+  memcpy(meta.name, "S5", 3);
   meta.order = group_order(g);
   meta.isCommutative = group_isCommutative(g);
   meta.minGenSetSize = mgs->size;
@@ -78,7 +88,6 @@ i32 main_5()
   group_sprintFileName(fnameBuf, c, hash);
 
   GroupMetaInfo cInfo;
-  cInfo.name ="S5";
   cInfo.order = group_order(c);
   cInfo.isCommutative = group_isCommutative(c);
   group_sprintHeader(headerBuf, cInfo);
