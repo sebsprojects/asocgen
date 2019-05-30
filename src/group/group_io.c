@@ -148,6 +148,7 @@ u16 group_readOrderFromFileName(char *path)
 {
   char *fileName = strchr(path, '/') + 1;
   u16 order = 0xffff;
+  //TODO: Check sscanf return code
   sscanf(fileName, "%5hu", &order);
   return order;
 }
@@ -209,6 +210,51 @@ Group *group_readGroupFromFile_alloc(char *path)
   return group;
 }
 
+// line is an array of size 81, see below
+void group_parseMetaLine(char *line, GroupMetaInfo *meta)
+{
+  if(!strncmp(line, "# Group Name: ", 14)) {
+    strncpy(meta->name, line + 14, GROUP_META_NAME_LEN - 1);
+  }
+  if(!strncmp(line, "# Group Order: ", 15)) {
+    i32 ord = -1;
+    i32 ok = sscanf(line + 15, "%hu", &meta->order);
+    if(ok == 1 && ord > 0) {
+      meta->order = ord;
+    }
+  }
+  if(!strncmp(line, "# Group Commutative: ", 21)) {
+    i32 isComm = -1;
+    i32 ok = sscanf(line + 21, "%i", &isComm);
+    if(ok == 1 && (isComm == 1 || isComm == 0)) {
+      meta->isCommutative = isComm;
+    }
+  }
+  if(!strncmp(line, "# Group MinGenSet: ", 19)) {
+    char s[81];
+    memset(s, '\0', 81);
+    strcpy(s, line + 19);
+    char *tok = strtok(s, ",");
+    bool ok = 1;
+    u16 val = 0xffff;
+    while(tok != 0) {
+      // Enforce that no character after the number occurs to avoid faulty inp
+      char dummy = 0;
+      ok = ok && (sscanf(tok, " %hx%c", &val, &dummy) == 1);
+      // If we cannot properly read or have too many values to read, abort
+      if(!ok || meta->minGenSetSize >= GROUP_META_MINGENSET_LEN) {
+        memset(meta->minGenSet, 0xffff,
+               GROUP_META_MINGENSET_LEN * sizeof(u16));
+        meta->minGenSetSize = 0;
+        break;
+      }
+      meta->minGenSet[meta->minGenSetSize] = val;
+      meta->minGenSetSize++;
+      tok = strtok(0, ",");
+    }
+  }
+}
+
 GroupMetaInfo group_readMetaFromFile(char *path)
 {
   GroupMetaInfo meta;
@@ -216,7 +262,7 @@ GroupMetaInfo group_readMetaFromFile(char *path)
   meta.order = 0;
   meta.isCommutative = 0;
   meta.minGenSetSize = 0;
-  memset(meta.minGenSet, 0, GROUP_META_MINGENSET_LEN * sizeof(u16));
+  memset(meta.minGenSet, 0xffff, GROUP_META_MINGENSET_LEN * sizeof(u16));
   FILE *f = 0;
   char line[81]; // Support line length of 80
   if((f = fopen(path, "r")) == 0) { // check if file exists
@@ -238,26 +284,7 @@ GroupMetaInfo group_readMetaFromFile(char *path)
     // everything until the next line. Using a partial line may lead to wrong
     // meta info, thus cannot be allowed
     if(c == '\n') {
-      if(!strncmp(line, "# Group Name: ", 14)) {
-        strncpy(meta.name, line + 14, GROUP_META_NAME_LEN - 1);
-      }
-      if(!strncmp(line, "# Group Order: ", 15)) {
-        i32 ord = -1;
-        i32 ok = sscanf(line + 15, "%hu", &meta.order);
-        if(ok == 1 && ord > 0) {
-          meta.order = ord;
-        }
-      }
-      if(!strncmp(line, "# Group Commutative: ", 21)) {
-        i32 isComm = -1;
-        i32 ok = sscanf(line + 21, "%i", &isComm);
-        if(ok == 1 && (isComm == 1 || isComm == 0)) {
-          meta.isCommutative = isComm;
-        }
-      }
-      if(!strncmp(line, "# Group MinGenSet: ", 19)) {
-        // TODO
-      }
+      group_parseMetaLine(line, &meta);
     } else {
       c = fgetc(f);
       while(c != '\n' && c != EOF) {

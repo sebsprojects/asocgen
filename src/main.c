@@ -34,6 +34,11 @@ i32 main_8()
   printf("meta.name: :%s:\n", m.name);
   printf("meta.order: :%u:\n", m.order);
   printf("meta.isCommutative: :%u:\n", m.isCommutative);
+  printf("meta.minGenSet: ");
+  for(i32 i = 0; i < m.minGenSetSize; i++) {
+    printf("%u ", m.minGenSet[i]);
+  }
+  printf("\n");
   return 0;
 }
 
