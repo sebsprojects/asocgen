@@ -5,6 +5,7 @@
 
 
 #define GROUP_META_NAME_LEN 32
+#define GROUP_META_FILENAME_LEN 27 // 5 + 2 + 16 + 4
 #define GROUP_META_MINGENSET_LEN 16
 
 /*
@@ -19,6 +20,11 @@ struct GroupMetaInfo {
 };
 typedef struct GroupMetaInfo GroupMetaInfo;
 
+
+// ---------------------------------------------------------------------------
+// Writing
+// ---------------------------------------------------------------------------
+
 /*
  * Tries to write the group to a file according to the following procedure:
  *   > Determine the maximal space a base-16 encoded group element needs
@@ -27,7 +33,7 @@ typedef struct GroupMetaInfo GroupMetaInfo;
  *     to fill the maximal space.
  *   > Do this process again but without any padding and calculate
  *     hash_djb2Reverse on this new string to serve as part of the filename
- *   > Construct the filename by <group_order>_<hash>.asoc.txt where
+ *   > Construct the filename by <group_order>_<hash>.txt where
  *     group_order is base-10 encoded and 0-padded to 5 characters
  *     (65534 is the maximal group order due to u16 restriction)
  *     Prepended to the above scheme can be an "u" if the isomorphism class
@@ -56,8 +62,17 @@ i32 group_sprintPreamble(char *buf);
 i32 group_sprintFileMeta(char *buf);
 i32 group_sprintGroupMeta(char *buf, GroupMetaInfo meta);
 
-u16 group_readOrderFromFileName(char *path);
-bool group_readCommutativeFromFileName(char *path);
+
+// ---------------------------------------------------------------------------
+// Reading
+// ---------------------------------------------------------------------------
+
+/*
+ * Checks if the file name complies with the group file name requirements
+ * If order and isCommutative are not 0-pointers, this information will be
+ * written to the pointers
+ */
+bool group_checkGroupFileName(char *path, u16 *order, bool *isCommutative);
 
 Group *group_readGroupFromFile_alloc(char *path);
 GroupMetaInfo group_readMetaFromFile(char *path);

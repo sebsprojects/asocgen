@@ -11,6 +11,9 @@
 
 static const f64 baseLog16 = 1.0 / log(16.0);
 
+// ---------------------------------------------------------------------------
+// Writing
+// ---------------------------------------------------------------------------
 
 bool group_writeToFile(Group *group, GroupMetaInfo meta, char *path)
 {
@@ -144,28 +147,48 @@ i32 group_sprintGroupMeta(char *buf, GroupMetaInfo meta)
 // Reading
 // ---------------------------------------------------------------------------
 
-u16 group_readOrderFromFileName(char *path)
+bool group_checkGroupFileName(char *path, u16 *order, bool *isCommutative)
 {
-  char *fileName = strchr(path, '/') + 1;
-  u16 order = 0xffff;
-  //TODO: Check sscanf return code
-  sscanf(fileName, "%5hu", &order);
-  return order;
-}
-
-bool group_readCommutativeFromFileName(char *path)
-{
-  char *fileName = strchr(path, '/') + 1;
-  return fileName[5] == 'c';
+  char *fileName = strrchr(path, '/');
+  if(fileName == 0) {
+    fileName = path; // Case where just the filename without any path is given
+  } else {
+    fileName++; // Account for "/" position from strrchr
+  }
+  if(strlen(fileName) != GROUP_META_FILENAME_LEN) {
+    return 0;
+  }
+  u16 ord = 0;
+  char commFlag = 0;
+  char sep = 0;
+  sscanf(fileName, "%5hu%c%c", &ord, &commFlag, &sep);
+  // Check for prefix and .txt file extension
+  bool ok = ord > 0 && (commFlag == 'c' || commFlag == 'n') && sep == '_';
+  if((fileName = strchr(fileName, '.')) == 0) {
+    return 0;
+  }
+  ok = ok && !strcmp(fileName, ".txt");
+  if(ok) {
+    if(order != 0) {
+      *order = ord;
+    }
+    if(isCommutative != 0) {
+      *isCommutative = commFlag == 'c' ? 1 : 0;
+    }
+  }
+  return ok;
 }
 
 Group *group_readGroupFromFile_alloc(char *path)
 {
+  u16 order = 0;
+  if(!group_checkGroupFileName(path, &order, 0)) {
+    return 0;
+  }
   FILE *f = 0;
   if((f = fopen(path, "r")) == 0) { // check if file exists
     return 0;
   }
-  u16 order = group_readOrderFromFileName(path);
   char c = fgetc(f);
   i64 startPos = -1;
   while(c == '#') {
@@ -213,19 +236,21 @@ Group *group_readGroupFromFile_alloc(char *path)
 // line is an array of size 81, see below
 void group_parseMetaLine(char *line, GroupMetaInfo *meta)
 {
+  // With all number parsing, enforce that no garbage follows the number
+  char dummy = 0;
   if(!strncmp(line, "# Group Name: ", 14)) {
     strncpy(meta->name, line + 14, GROUP_META_NAME_LEN - 1);
   }
   if(!strncmp(line, "# Group Order: ", 15)) {
     i32 ord = -1;
-    i32 ok = sscanf(line + 15, "%hu", &meta->order);
+    i32 ok = sscanf(line + 15, "%hu%c", &meta->order, &dummy) == 1;
     if(ok == 1 && ord > 0) {
       meta->order = ord;
     }
   }
   if(!strncmp(line, "# Group Commutative: ", 21)) {
     i32 isComm = -1;
-    i32 ok = sscanf(line + 21, "%i", &isComm);
+    i32 ok = sscanf(line + 21, "%i%c", &isComm, &dummy) == 1;
     if(ok == 1 && (isComm == 1 || isComm == 0)) {
       meta->isCommutative = isComm;
     }
@@ -238,8 +263,6 @@ void group_parseMetaLine(char *line, GroupMetaInfo *meta)
     bool ok = 1;
     u16 val = 0xffff;
     while(tok != 0) {
-      // Enforce that no character after the number occurs to avoid faulty inp
-      char dummy = 0;
       ok = ok && (sscanf(tok, " %hx%c", &val, &dummy) == 1);
       // If we cannot properly read or have too many values to read, abort
       if(!ok || meta->minGenSetSize >= GROUP_META_MINGENSET_LEN) {

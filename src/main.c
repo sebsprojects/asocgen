@@ -14,6 +14,9 @@
 #include "group/group_hom.h"
 #include "group/group_io.h"
 
+#include "application/group_library.h"
+
+i32 main_9();
 i32 main_8();
 i32 main_7();
 i32 main_6();
@@ -25,12 +28,23 @@ i32 main_1();
 
 i32 main()
 {
-  return main_8();
+  return main_9();
+}
+
+i32 main_9()
+{
+  Vecptr *fns = app_listGroupFiles_alloc("./grplib", 24, 0);
+  for(i32 i = 0; i < fns->size; i++) {
+    printf("File name: %s\n", (char *) *vecptr_at(fns, i));
+    free(*vecptr_at(fns, i));
+  }
+  vecptr_free(fns);
+  return 0;
 }
 
 i32 main_8()
 {
-  GroupMetaInfo m = group_readMetaFromFile("./groups/00024n_078a417cf4412f95.txt");
+  GroupMetaInfo m = group_readMetaFromFile("./grplib/00024n_078a417cf4412f95.txt");
   printf("meta.name: :%s:\n", m.name);
   printf("meta.order: :%u:\n", m.order);
   printf("meta.isCommutative: :%u:\n", m.isCommutative);
