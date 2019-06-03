@@ -39,6 +39,7 @@ bool group_isCyclic(Group *group);
 
 u16 group_elementOrder(Group *group, u16 ele);
 u16 group_elementOrderi(Group *group, u16 ind);
+Vecu16 *group_getOrderVector_alloc(Group *group);
 
 Mapu16 *group_orderDist_alloc(Group *group);
 

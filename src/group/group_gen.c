@@ -65,6 +65,58 @@ void group_generateFrom_noalloc(Group *group,
   }
 }
 
+bool group_generateFromConstr_noalloc(Group *group,
+                                      Vecu16 *set,
+                                      Vecu16 *res,
+                                      Vecu16 *util,
+                                      Vecu16 *orderVec,
+                                      u32 subgroupOrder)
+{
+  bool isCommu = group_isCommutative(group);
+  vecu16_fill(res, 0xffff);
+  // fill util with the inds of elements in set, copy elements from set to res
+  u16 ele;
+  u32 ind = -1;
+  i32 num = 0;
+  for(i32 i = 0; i < set->size; i++) {
+    ele = *vecu16_at(set, i);
+    if(ele == 0xffff) {
+      break;
+    }
+    num++;
+    vecu16_indexOf(group->set, ele, &ind, 0);
+    *vecu16_at(res, ind) = ele;
+    *vecu16_at(util, i) = ind;
+  }
+  i32 prevNum = 0;
+  u16 a, b, c;
+  // Calculate the product of all elements in util with each other and check
+  // if we got any new. If yes, repeat, if not we are done
+  while(prevNum != num) {
+    prevNum = num;
+    for(i32 i = 0; i < num; i++) {
+      a = *vecu16_at(util, i);
+      i32 startJ = isCommu ? i : 0;
+      for(i32 j = startJ; j < num; j++) {
+        b = *vecu16_at(util, j);
+        c = group_opi(group, a, b);
+        if(*vecu16_at(res, c) == 0xffff) { // is this prod new in res?
+          if(num >= subgroupOrder ||
+             subgroupOrder % *vecu16_at(orderVec, c) != 0) {
+            vecu16_fill(res, 0xffff);
+            return 0;
+          }
+          ele = *vecu16_at(group->set, c);
+          *vecu16_at(res, c) = ele;
+          *vecu16_at(util, num) = c;
+          num++;
+        }
+      }
+    }
+  }
+  return 1;
+}
+
 Vecu16 *group_generateFrom_alloc(Group *group, Vecu16 *set) {
   u16 n = group_order(group);
   Vecu16* res = vecu16_alloc(n);

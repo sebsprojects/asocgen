@@ -16,6 +16,7 @@
 
 #include "application/group_library.h"
 
+i32 main_10();
 i32 main_9();
 i32 main_8();
 i32 main_7();
@@ -28,7 +29,20 @@ i32 main_1();
 
 i32 main()
 {
-  return main_9();
+  return main_10();
+}
+
+i32 main_10()
+{
+  Group *group =
+    group_readGroupFromFile_alloc("./grplib/05040n_ec6eb6f39e278625.txt");
+  if(group == 0) {
+    return 0;
+  }
+  // 7! = 2 * 2 * 2 * 2 * 3 * 3 * 5 * 7
+  app_searchForGroup_alloc(group, 2 * 2 * 2 * 2, 0, 2, 3, 90000);
+  group_free(group);
+  return 0;
 }
 
 i32 main_9()

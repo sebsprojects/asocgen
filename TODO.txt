@@ -3,6 +3,7 @@
 * gen: Think about truly binom-incremental genSet functions, i.e. that only
        progress one binom shift at a time no matter if we find a genSet or not
 * gen: Make sure that all functions work with a genSet that is 0xffff-terminated
+* gen: Think about automatically truncing the genSet, esp. in alloc version
 * all: Make independent of neutral == 0 (elementOrder, ...)
 
 

@@ -118,8 +118,8 @@ i32 group_sprintFileMeta(char *buf)
   struct tm tm = *localtime(&t);
   i32 offs = 0;
   offs += sprintf(buf + offs, "# Version: %s\n", VERSION);
-  offs += sprintf(buf + offs, "# File Created: %d-%d-%d", tm.tm_year + 1900,
-                  tm.tm_mon + 1, tm.tm_mday);
+  offs += sprintf(buf + offs, "# File Created: %d-%02d-%02d",
+                  tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
   return offs;
 }
 

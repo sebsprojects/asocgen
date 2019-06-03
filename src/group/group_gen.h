@@ -22,6 +22,22 @@ void group_generateFrom_noalloc(Group *group,
                                 Vecu16 *res,   // result
                                 Vecu16 *util); // fills up, unordered
 
+/*
+ * Slightly modified version to abort early if a generated (sub)group of
+ * subgroupOrder is impossible to reach based on the amount of resulting
+ * elements or elementOrder which does not divide subgroupOrder. To this end
+ * a vector containing precomputed element orders must be supplied to save
+ * expensive and redundant computation. Same indexing as group->set.
+ *
+ * Returns 0 if subgroupOrder could not be attained and fills res with 0xffff
+ * Returns 1 otherwise with similar res as above
+ */
+bool group_generateFromConstr_noalloc(Group *group,
+                                      Vecu16 *set,
+                                      Vecu16 *res,
+                                      Vecu16 *util,
+                                      Vecu16 *orderVec, // precomputed ele ords
+                                      u32 subgroupOrder);
 
 /*
  * Returns a newly allocated array containing the result of generating from set

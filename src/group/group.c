@@ -109,6 +109,16 @@ u16 group_elementOrderi(Group *group, u16 ind)
   return ord;
 }
 
+Vecu16 *group_getOrderVector_alloc(Group *group)
+{
+  u16 n = group_order(group);
+  Vecu16 *orderVec = vecu16_alloc(n);
+  for(i32 i = 0; i < n; i++) {
+    *vecu16_at(orderVec, i) = group_elementOrderi(group, i);
+  }
+  return orderVec;
+}
+
 Mapu16 *group_orderDist_alloc(Group *group)
 {
   u32 n = group_order(group);
