@@ -158,6 +158,15 @@ Vecu16 *group_minGeneratingSet_alloc(Group *group);
 // Generating a subgroup from elements
 // --------------------------------------------------------------------------
 
+/*
+ * Returns a newly allocated subgroup with subgroup->set = res. res must be
+ * closed under group_op, or an invalid group is returned
+ */
+Group *group_expandSubgroupFromSet_alloc(Group *group, Vecu16 *res);
+
+/*
+ * Generated and return a newly allocated subgroup with generating set set
+ */
 Group *group_generateSubgroup_alloc(Group *group, Vecu16 *set);
 
 

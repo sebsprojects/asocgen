@@ -369,22 +369,35 @@ Vecu16 *group_minGeneratingSet_alloc(Group *group)
 // Generating a subgroup from elements
 // --------------------------------------------------------------------------
 
+Group *group_expandSubgroupFromSet_alloc(Group *group, Vecu16 *res)
+{
+  u32 m = res->size;
+  Group *subgroup = group_alloc(m, 0);
+  vecu16_copyInto(res, subgroup->set, 0);
+  u16 a, b, ab;
+  bool isCommu = group_isCommutative(group);
+  for(i32 i = 0; i < m; i++) {
+    a = *vecu16_at(res, i);
+    for(i32 j = i; j < m; j++) {
+      b = *vecu16_at(res, j);
+      ab = group_op(group, a, b);
+      *vecu16_at(subgroup->gtab, get2DIndex(m, i, j)) = ab;
+      if(isCommu) {
+        *vecu16_at(subgroup->gtab, get2DIndex(m, j, i)) = ab;
+      } else {
+        *vecu16_at(subgroup->gtab, get2DIndex(m, j, i)) = group_op(group, b, a);
+      }
+    }
+  }
+  return subgroup;
+}
+
+
 Group *group_generateSubgroup_alloc(Group *group, Vecu16 *set)
 {
   Vecu16 *res = group_generateFrom_alloc(group, set);
   group_truncGeneratedSet(res, 1);
-  u32 m = res->size;
-  Group *subgroup = group_alloc(m, 0);
-  vecu16_copyInto(res, subgroup->set, 0);
-  u16 a, b;
-  for(i32 i = 0; i < m; i++) {
-    a = *vecu16_at(res, i);
-    for(i32 j = 0; j < m; j++) {
-      b = *vecu16_at(res, j);
-      *vecu16_at(subgroup->gtab, get2DIndex(m, i, j)) = group_op(group, a, b);
-      *vecu16_at(subgroup->gtab, get2DIndex(m, j, i)) = group_op(group, b, a);
-    }
-  }
+  Group *subgroup = group_expandSubgroupFromSet_alloc(group, res);
   vecu16_free(res);
   return subgroup;
 }

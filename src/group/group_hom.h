@@ -78,7 +78,7 @@ struct HomIsoUtils {
   Vecu16 *mperm;                  // Perm for mapping genSets onto each other
   Vecu16 *genFromOrders;          // Store the ele orders for genFrom
   Vecptr *genDecompVec;           // Full decomp into elements from genSetFrom
-  Vecu16 *genOrderConstr;            // For group_minGeneratingSetConstr
+  Vecu16 *genOrderConstr;         // For group_minGeneratingSetConstr
   GenConstrUtils *genConstrUtils; // For group_minGeneratingSetConstr
 };
 typedef struct HomIsoUtils HomIsoUtils;

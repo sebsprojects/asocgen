@@ -36,9 +36,15 @@ Vecptr *app_listGroupFiles_alloc(char *path, u16 order, i32 isCommutative);
 // --------------------------------------------------------------------------
 
 Group *app_searchForGroup_alloc(Group *parent,
-                                u16 order, i32 isCommutative,
-                                u32 genSizeLower, u32 genSizeUpper,
+                                u16 order,
+                                u32 genSizeLower,
+                                u32 genSizeUpper,
                                 u32 iter);
 
+Vecptr *app_searchForGroups_alloc(Group *parent,
+                                  u16 order,
+                                  u32 genSizeLower,
+                                  u32 genSizeUpper,
+                                  u32 iter);
 
 #endif

@@ -7,6 +7,7 @@
 #include <elfc_veci32.h>
 #include <elfc_mapu16.h>
 #include <elfc_hash.h>
+#include <elfc_random.h>
 
 #include "group/group.h"
 #include "group/group_common.h"
@@ -16,6 +17,7 @@
 
 #include "application/group_library.h"
 
+i32 main_11();
 i32 main_10();
 i32 main_9();
 i32 main_8();
@@ -29,7 +31,53 @@ i32 main_1();
 
 i32 main()
 {
-  return main_10();
+  return main_11();
+}
+
+i32 main_11()
+{
+  //Group *g1 = group_readGroupFromFile_alloc("./grplib/00016n_46544f7fed32b725.txt");
+  //Group *g2 = group_readGroupFromFile_alloc("./grplib/00016n_ad667b22219eb725.txt");
+  //Group *g1 = group_readGroupFromFile_alloc("./grplib/00048n_37e12bcbfe003125.txt");
+  //Group *g2 = group_readGroupFromFile_alloc("./grplib/00048n_7b17045886823125.txt");
+  Group *g1 = group_readGroupFromFile_alloc("./grplib/00120n_21e80f54a2599d75.txt");
+  Group *g2 = group_readGroupFromFile_alloc("./grplib/00120n_b916c3ae173f1d75.txt");
+  if(g1 == 0 || g2 == 0) {
+    return 1;
+  }
+  u16 n = group_order(g1);
+  Mapu16 *om1 = group_orderDist_alloc(g1);
+  Mapu16 *om2 = group_orderDist_alloc(g2);
+  vecu16_print(om1->domain);
+  vecu16_print(om1->codomain);
+  vecu16_print(om2->domain);
+  vecu16_print(om2->codomain);
+  mapu16_free(om1);
+  mapu16_free(om2);
+  Vecu16 *genFrom = group_minGeneratingSet_alloc(g1);
+  group_truncGeneratedSet(genFrom, 1);
+  Mapu16 *h = mapu16_alloc(n, 1);
+  vecu16_copyInto(g1->set, h->domain, 0);
+  GroupHom *hom = group_allocHom_ref(g1, g2, h);
+  Vecu16 *binom = vecu16_alloc(n);
+  binom_init(binom, 0, genFrom->size, 0);
+  HomIsoUtils *isoUtils = group_allocSetupIsoUtils(hom, genFrom);
+  vecu16_print(genFrom);
+  vecu16_print(isoUtils->genFromOrders);
+  bool ok = 1;
+  while(ok) {
+    ok = group_checkForIsomorphismFromGen(hom, genFrom, binom, isoUtils);
+  }
+
+  group_freeIsoUtils(isoUtils);
+  group_freeHom_ref(hom);
+  mapu16_free(h);
+  vecu16_free(binom);
+  vecu16_free(genFrom);
+
+  group_free(g2);
+  group_free(g1);
+  return 0;
 }
 
 i32 main_10()
@@ -39,8 +87,11 @@ i32 main_10()
   if(group == 0) {
     return 0;
   }
-  // 7! = 2 * 2 * 2 * 2 * 3 * 3 * 5 * 7
-  app_searchForGroup_alloc(group, 2 * 2 * 2 * 2, 0, 2, 3, 90000);
+  rand_setSeed(444);
+  Group *g = app_searchForGroup_alloc(group, 120, 2, 3, 90000);
+  printf("Found valid subgroup: %u\n", group_isValid(g));
+  printf("Writing subgroup to file: %u\n", app_writeGroup("./grplib", g, 0));
+  group_free(g);
   group_free(group);
   return 0;
 }

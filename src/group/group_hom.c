@@ -192,8 +192,8 @@ bool group_checkForIsomorphismFromGen(GroupHom *hom,
       group_completeMapFromGen(hom, genSet, isoUtils->genDecompVec);
       bool isInj = mapu16_isInjective(hom->map);
       bool hasHomProp = group_hasHomProp(hom);
-      printf("%i %i -> %i %i\n", *vecu16_at(binom, 0), *vecu16_at(binom, 1),
-             isInj, hasHomProp);
+      printf("%i %i %i -> %i %i\n", *vecu16_at(binom, 0), *vecu16_at(binom, 1),
+             *vecu16_at(binom, 2), isInj, hasHomProp);
     }
     mpermOk = perm_shiftDefault(isoUtils->mperm);
   }

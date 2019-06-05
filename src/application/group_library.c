@@ -22,14 +22,18 @@ bool app_writeGroup(char *path, Group *group, char *name)
   GroupMetaInfo meta;
   memset(meta.name, '\0', GROUP_META_NAME_LEN); // avoid garbage in meta.name
   memset(meta.minGenSet, 0xffff, GROUP_META_MINGENSET_LEN * sizeof(u16));
-  strcpy(meta.name, name);
+  if(name != 0) {
+    strcpy(meta.name, name);
+  }
   meta.order = group_order(group);
   meta.isCommutative = group_isCommutative(group);
+  printf("Determining minGenSet ...\n");
   Vecu16 *minGenSet = group_minGeneratingSet_alloc(group);
   group_truncGeneratedSet(minGenSet, 1);
   meta.minGenSetSize = minGenSet->size;
   vecu16_copyIntoArray(meta.minGenSet, minGenSet, minGenSet->size);
   vecu16_free(minGenSet);
+  printf("Writing to file ...\n");
   return group_writeToFile(group, meta, path);
 }
 
@@ -38,6 +42,7 @@ bool app_writeGroupSn(char *path, u32 n)
   char name[16];
   memset(name, 0, 16);
   sprintf(name, "S%u", n);
+  printf("Constructing group ...\n");
   Group *group = group_createSn_alloc(n);
   bool ok = app_writeGroup(path, group, name);
   group_free(group);
@@ -49,6 +54,7 @@ bool app_writeGroupCn(char *path, u32 n)
   char name[16];
   memset(name, 0, 16);
   sprintf(name, "C%u", n);
+  printf("Constructing group ...\n");
   Group *group = group_createCn_alloc(n);
   bool ok = app_writeGroup(path, group, name);
   group_free(group);
@@ -112,8 +118,9 @@ Vecptr *app_listGroupFiles_alloc(char *path, u16 order, i32 isCommutative)
 // --------------------------------------------------------------------------
 
 Group *app_searchForGroup_alloc(Group *parent,
-                                u16 order, i32 isCommutative,
-                                u32 genSizeLower, u32 genSizeUpper,
+                                u16 order,
+                                u32 genSizeLower,
+                                u32 genSizeUpper,
                                 u32 iter)
 {
   u16 n = group_order(parent);
@@ -121,7 +128,7 @@ Group *app_searchForGroup_alloc(Group *parent,
   Vecu16 *res = vecu16_alloc(n);
   Vecu16 *util = vecu16_alloc(n);
   Vecu16 *orderVec = group_getOrderVector_alloc(parent);
-  rand_setSeed(41);
+  Group *subgroup = 0;
   for(i32 i = 0; i < iter; i++) {
     u32 numGen = rand_getU32InRange(genSizeLower, genSizeUpper);
     vecu16_fill(set, 0xffff);
@@ -140,8 +147,6 @@ Group *app_searchForGroup_alloc(Group *parent,
       }
       *vecu16_at(set, j) = randEle;
     }
-    //printf("Generating with set ...\n");
-    //vecu16_print(set);
     bool ok = group_generateFromConstr_noalloc(parent, set, res, util,
                                                orderVec, order);
     if(ok) {
@@ -149,15 +154,15 @@ Group *app_searchForGroup_alloc(Group *parent,
       u32 m = 0;
       vecu16_indexOf(res, 0xffff, &m, 0);
       if(m == order) {
-        printf("%05u :: %u :: Found subgrp of order %u.\n", i + 1, numGen, m);
+        vecu16_resize(res, m);
+        subgroup = group_expandSubgroupFromSet_alloc(parent, res);
+        break;
       }
-    } else {
-
     }
   }
   vecu16_free(orderVec);
   vecu16_free(util);
   vecu16_free(res);
   vecu16_free(set);
-  return 0;
+  return subgroup;
 }
